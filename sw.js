@@ -1,5 +1,5 @@
 // sw.js — cache-first app shell, versioned
-const VERSION = '2026.07.31-fix1';   // bump on EVERY deploy to ship updates
+const VERSION = '2026.08.08-fontscale1';   // bump on EVERY deploy to ship updates
 const CACHE   = 'html-vault-' + VERSION;
 
 // All same-origin. Every file here must exist or install() fails.

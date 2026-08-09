@@ -28,7 +28,7 @@
   --danger:#b64060;--header:rgba(255,243,248,.94);--code-bg:#fffdfd;--gutter:#fff0f5;
   --field:#fffdfd;--field-line:#e8b8ca;--match:#fde0ea;--match-cur:#dff1ff;
   --shadow:0 12px 30px rgba(111,48,82,.08);--overlay:rgba(62,28,50,.34);
-  --warn-bg:#fff4f8;--warn-line:#efc9d8;--warn-text:#70405a;
+  --warn-bg:#fff4f8;--warn-line:#efc9d8;--warn-text:#70405a;--scale:1;
   --hl-fg:#24292e;--hl-bg:#fff;--hl-kw:#d73a49;--hl-fn:#6f42c1;
   --hl-at:#005cc5;--hl-st:#032f62;--hl-bi:#e36209;--hl-cm:#6a737d;
   --hl-tg:#22863a;--hl-sc:#005cc5;--hl-bu:#735c0f;
@@ -65,7 +65,7 @@ code.hljs{padding:3px 5px}
 html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--text);overflow:hidden;
   font-family:'Lexend',Verdana,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  -webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased;font-size:17px}
+  -webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased;font-size:calc(17px * var(--scale))}
 #app{height:100%;display:flex;flex-direction:column;overflow:hidden}
 button,input,textarea,select{font-family:inherit;color:var(--text)}
 button{font-size:inherit;cursor:pointer;touch-action:manipulation}
@@ -80,12 +80,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   padding-top:calc(env(safe-area-inset-top) + 12px);
   background:var(--header);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
   border-bottom:.5px solid var(--sep);z-index:20}
-.hdr h1{font-size:22px;font-weight:700;margin:0;flex:1;letter-spacing:-.02em}
-.hdr .ttl{flex:1;font-size:17px;font-weight:600;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px}
+.hdr h1{font-size:calc(22px * var(--scale));font-weight:700;margin:0;flex:1;letter-spacing:-.02em}
+.hdr .ttl{flex:1;font-size:calc(17px * var(--scale));font-weight:600;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px}
 .icon-btn{border:0;background:transparent;color:var(--accent);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
 .icon-btn:active{background:rgba(120,120,128,.16)}
 .icon-btn svg{width:24px;height:24px}
-.link-btn{border:0;background:transparent;color:var(--accent);font-size:17px;padding:6px 4px;white-space:nowrap}
+.link-btn{border:0;background:transparent;color:var(--accent);font-size:calc(17px * var(--scale));padding:6px 4px;white-space:nowrap}
 /* ── Library ──────────────────────────────────────────── */
 .scroll{flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch}
 .wrapw{max-width:760px;margin:0 auto;width:100%}
@@ -95,7 +95,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .search{position:relative}
 .search input{width:100%;border:0;background:rgba(120,120,128,.12);border-radius:10px;padding:9px 12px 9px 34px;font-size:17px;outline:none;color:var(--text)}
 .search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--text3)}
-.sortrow{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text3)}
+.sortrow{display:flex;align-items:center;gap:8px;font-size:calc(13px * var(--scale));color:var(--text3)}
 .sortrow select{margin-left:auto;border:0;background:rgba(120,120,128,.12);color:var(--text);border-radius:8px;padding:6px 28px 6px 10px;font-size:14px;appearance:none;-webkit-appearance:none;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%238e8e93'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 8px center;background-size:14px}
@@ -104,39 +104,39 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .row:last-child{border-bottom:0}
 .row-main{flex:1;padding:11px 6px 11px 16px;min-width:0;-webkit-user-select:none;user-select:none}
 .row-main:active{background:rgba(120,120,128,.12)}
-.row-title{font-size:17px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.row-sub{font-size:13px;color:var(--text3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-title{font-size:calc(17px * var(--scale));font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-sub{font-size:calc(13px * var(--scale));color:var(--text3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row-more{border:0;background:transparent;color:var(--text3);width:44px;height:48px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}
 .row-more:active{color:var(--accent)}
 .row-more svg{width:22px;height:22px}
 .empty{text-align:center;color:var(--text3);padding:54px 24px}
-.empty .big{font-size:46px;margin-bottom:8px}
-.empty h2{color:var(--text);font-size:20px;margin:8px 0 6px}
-.empty p{margin:0 0 18px;font-size:15px;line-height:1.5}
+.empty .big{font-size:calc(46px * var(--scale));margin-bottom:8px}
+.empty h2{color:var(--text);font-size:calc(20px * var(--scale));margin:8px 0 6px}
+.empty p{margin:0 0 18px;font-size:calc(15px * var(--scale));line-height:1.5}
 .empty .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.banner{display:flex;gap:10px;align-items:flex-start;background:var(--warn-bg);border:.5px solid var(--warn-line);color:var(--warn-text);border-radius:12px;padding:11px 12px;margin:14px 16px 4px;font-size:13.5px;line-height:1.45}
+.banner{display:flex;gap:10px;align-items:flex-start;background:var(--warn-bg);border:.5px solid var(--warn-line);color:var(--warn-text);border-radius:12px;padding:11px 12px;margin:14px 16px 4px;font-size:calc(13.5px * var(--scale));line-height:1.45}
 .banner svg{width:20px;height:20px;flex:0 0 auto}
 .banner b{font-weight:700}
-.banner .x{margin-left:auto;border:0;background:transparent;color:var(--warn-text);font-size:18px;opacity:.7;flex:0 0 auto;width:24px;height:24px;border-radius:50%}
-.membar{background:var(--danger);color:#fff;font-size:12.5px;text-align:center;padding:6px 12px;line-height:1.35}
+.banner .x{margin-left:auto;border:0;background:transparent;color:var(--warn-text);font-size:calc(18px * var(--scale));opacity:.7;flex:0 0 auto;width:24px;height:24px;border-radius:50%}
+.membar{background:var(--danger);color:#fff;font-size:calc(12.5px * var(--scale));text-align:center;padding:6px 12px;line-height:1.35}
 /* ── Buttons / Fields ─────────────────────────────────── */
-.btn{border:0;border-radius:11px;padding:11px 16px;font-size:16px;font-weight:600;background:rgba(120,120,128,.16);color:var(--accent)}
+.btn{border:0;border-radius:11px;padding:11px 16px;font-size:calc(16px * var(--scale));font-weight:600;background:rgba(120,120,128,.16);color:var(--accent)}
 .btn:active{opacity:.7}
 .btn-primary{background:var(--accent);color:#fff}
 .btn-danger{background:var(--danger);color:#fff}
 .btn[disabled]{opacity:.4}
 .field{width:100%;border:0;background:var(--field);border-radius:11px;padding:12px 14px;font-size:17px;outline:none;border:.5px solid var(--field-line)}
 textarea.field{min-height:46vh;resize:vertical;font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;-webkit-text-size-adjust:100%;font-size:16px}
-.label{font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin:18px 4px 7px;font-weight:600}
-.hint{font-size:13px;color:var(--text3);margin:7px 4px 0;line-height:1.4}
+.label{font-size:calc(13px * var(--scale));color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin:18px 4px 7px;font-weight:600}
+.hint{font-size:calc(13px * var(--scale));color:var(--text3);margin:7px 4px 0;line-height:1.4}
 .hint.full{color:var(--accent)}
 .hint.frag{color:#ff9f0a}
 .group{background:var(--card);border-radius:14px;overflow:hidden;margin:0 0 4px;box-shadow:var(--shadow)}
 .gitem{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:.5px solid var(--sep);min-height:48px}
 .gitem:last-child{border-bottom:0}
 .gitem .gl{flex:1;min-width:0}
-.gitem .gl .t{font-size:16px}
-.gitem .gl .s{font-size:12.5px;color:var(--text3);margin-top:2px;line-height:1.45}
+.gitem .gl .t{font-size:calc(16px * var(--scale))}
+.gitem .gl .s{font-size:calc(12.5px * var(--scale));color:var(--text3);margin-top:2px;line-height:1.45}
 .gitem.tap{-webkit-user-select:none;user-select:none}
 .gitem.tap:active{background:rgba(120,120,128,.12)}
 .gitem svg{flex:0 0 auto}
@@ -147,7 +147,7 @@ textarea.field{min-height:46vh;resize:vertical;font:14px/1.5 ui-monospace,SFMono
 .switch input:checked+.track{background:#34c759}
 .switch input:checked+.track:before{transform:translateX(20px)}
 .seg{display:inline-flex;background:rgba(120,120,128,.16);border-radius:9px;padding:2px;gap:2px}
-.seg button{border:0;background:transparent;color:var(--text);font-size:14px;font-weight:600;padding:5px 14px;border-radius:7px;min-width:62px}
+.seg button{border:0;background:transparent;color:var(--text);font-size:calc(14px * var(--scale));font-weight:600;padding:5px 14px;border-radius:7px;min-width:62px}
 .seg button.on{background:var(--card2);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .bar{height:8px;border-radius:5px;background:rgba(120,120,128,.2);overflow:hidden;margin:8px 0 4px}
 .bar>i{display:block;height:100%;background:var(--accent);border-radius:5px;transition:width .3s}
@@ -162,15 +162,15 @@ textarea.field{min-height:46vh;resize:vertical;font:14px/1.5 ui-monospace,SFMono
    It is a flex sibling now, so the iframe simply starts below it. */
 #previewWrap{position:absolute;inset:0;overflow:hidden;display:flex;flex-direction:column}
 .preview-frame{flex:1 1 0;width:100%;height:auto;min-height:0;border:0;display:block}
-.pv-note{position:relative;flex:0 0 auto;order:-1;display:flex;align-items:flex-start;gap:8px;background:var(--warn-bg);color:var(--warn-text);border-bottom:.5px solid var(--warn-line);padding:8px 12px;font-size:12.5px;line-height:1.4}
-.pv-note .pv-x{margin-left:auto;border:0;background:transparent;color:inherit;font-size:17px;line-height:1;opacity:.7;flex:0 0 auto;width:22px;height:22px;cursor:pointer}
-.pv-note.blocking{flex:1 1 auto;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:0;background:var(--card);color:var(--text2);border:0;padding:28px 24px;font-size:14px}
+.pv-note{position:relative;flex:0 0 auto;order:-1;display:flex;align-items:flex-start;gap:8px;background:var(--warn-bg);color:var(--warn-text);border-bottom:.5px solid var(--warn-line);padding:8px 12px;font-size:calc(12.5px * var(--scale));line-height:1.4}
+.pv-note .pv-x{margin-left:auto;border:0;background:transparent;color:inherit;font-size:calc(17px * var(--scale));line-height:1;opacity:.7;flex:0 0 auto;width:22px;height:22px;cursor:pointer}
+.pv-note.blocking{flex:1 1 auto;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:0;background:var(--card);color:var(--text2);border:0;padding:28px 24px;font-size:calc(14px * var(--scale))}
 #viewerRoot.reading .vbar{display:none}
 .reading-exit{display:none;position:absolute;
   top:12px;
   top:calc(env(safe-area-inset-top) + 12px);
   right:12px;z-index:30;
-  border:0;border-radius:18px;padding:7px 14px;font-size:14px;font-weight:600;
+  border:0;border-radius:18px;padding:7px 14px;font-size:calc(14px * var(--scale));font-weight:600;
   background:var(--header);color:var(--accent);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   box-shadow:0 2px 10px rgba(0,0,0,.18)}
@@ -187,14 +187,14 @@ textarea.field{min-height:46vh;resize:vertical;font:14px/1.5 ui-monospace,SFMono
   border-bottom:.5px solid var(--sep)}
 .code-tools .csearch{flex:1;min-width:0}
 .code-tools .csearch input{width:100%;border:0;background:rgba(120,120,128,.14);border-radius:9px;padding:7px 10px;font-size:16px;outline:none;color:var(--text)}
-.cnav{display:flex;align-items:center;gap:2px;color:var(--text3);font-size:12px;flex:0 0 auto}
+.cnav{display:flex;align-items:center;gap:2px;color:var(--text3);font-size:calc(12px * var(--scale));flex:0 0 auto}
 .cnav button{border:0;background:transparent;color:var(--accent);width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center}
 .cnav button:active{background:rgba(120,120,128,.16)}
 .cnav .cnt{min-width:40px;text-align:center;white-space:nowrap}
-.ctgl{border:0;background:rgba(120,120,128,.14);color:var(--text2);border-radius:8px;height:30px;padding:0 9px;font-size:12px;font-weight:600;flex:0 0 auto}
+.ctgl{border:0;background:rgba(120,120,128,.14);color:var(--text2);border-radius:8px;height:30px;padding:0 9px;font-size:calc(12px * var(--scale));font-weight:600;flex:0 0 auto}
 .ctgl.on{background:var(--accent);color:#fff}
 .code-scroll{flex:1 1 auto;position:relative;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--code-bg)}
-.code-lines{font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;min-width:max-content;padding:6px 0 calc(env(safe-area-inset-bottom)+40px)}
+.code-lines{font:calc(13px * var(--scale))/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;min-width:max-content;padding:6px 0 calc(env(safe-area-inset-bottom)+40px)}
 .code-lines.wrap{min-width:0}
 .cl{display:flex}
 .cln{position:sticky;left:0;flex:0 0 auto;min-width:3.4em;text-align:right;padding:0 .65em;color:var(--text3);background:var(--gutter);-webkit-user-select:none;user-select:none;border-right:.5px solid var(--sep);z-index:1}
@@ -208,8 +208,8 @@ textarea.field{min-height:46vh;resize:vertical;font:14px/1.5 ui-monospace,SFMono
 .sheet{width:100%;max-width:520px;margin:8px;display:flex;flex-direction:column;gap:8px;padding-bottom:calc(env(safe-area-inset-bottom)+4px);transform:translateY(12px);transition:transform .22s}
 .ov.show .sheet{transform:none}
 .sheet .grp{background:var(--card2);border-radius:14px;overflow:hidden;backdrop-filter:blur(20px)}
-.sheet-title{padding:13px 16px;text-align:center;font-size:13px;color:var(--text3);border-bottom:.5px solid var(--sep);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sheet-btn{display:block;width:100%;border:0;background:transparent;color:var(--accent);font-size:19px;padding:15px;border-bottom:.5px solid var(--sep)}
+.sheet-title{padding:13px 16px;text-align:center;font-size:calc(13px * var(--scale));color:var(--text3);border-bottom:.5px solid var(--sep);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sheet-btn{display:block;width:100%;border:0;background:transparent;color:var(--accent);font-size:calc(19px * var(--scale));padding:15px;border-bottom:.5px solid var(--sep)}
 .sheet-btn:last-child{border-bottom:0}
 .sheet-btn:active{background:rgba(120,120,128,.16)}
 .sheet-btn.danger{color:var(--danger)}
@@ -217,22 +217,22 @@ textarea.field{min-height:46vh;resize:vertical;font:14px/1.5 ui-monospace,SFMono
 .modal-ov{position:fixed;inset:0;background:var(--overlay);z-index:120;display:none;align-items:center;justify-content:center;padding:24px}
 .modal-ov.show{display:flex}
 .modal{width:100%;max-width:320px;background:var(--card2);border-radius:16px;padding:18px;text-align:center;backdrop-filter:blur(20px)}
-.modal-title{font-size:17px;font-weight:700;margin-bottom:6px}
-.modal-msg{font-size:13.5px;color:var(--text2);line-height:1.5;margin-bottom:14px}
+.modal-title{font-size:calc(17px * var(--scale));font-weight:700;margin-bottom:6px}
+.modal-msg{font-size:calc(13.5px * var(--scale));color:var(--text2);line-height:1.5;margin-bottom:14px}
 .modal .field{text-align:left;margin-bottom:14px}
 .modal-actions{display:flex;gap:10px}
 .modal-actions .btn{flex:1}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom)+26px);
   transform:translate(-50%,12px);background:rgba(40,40,42,.96);color:#fff;
-  padding:11px 18px;border-radius:22px;font-size:14px;font-weight:500;z-index:200;
+  padding:11px 18px;border-radius:22px;font-size:calc(14px * var(--scale));font-weight:500;z-index:200;
   opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:80vw;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%)}
-.foot{text-align:center;color:var(--text3);font-size:12px;padding:14px 16px 0;line-height:1.5}
-.steps{margin:4px 0 0;padding-left:20px;font-size:14px;line-height:1.7;color:var(--text2)}
+.foot{text-align:center;color:var(--text3);font-size:calc(12px * var(--scale));padding:14px 16px 0;line-height:1.5}
+.steps{margin:4px 0 0;padding-left:20px;font-size:calc(14px * var(--scale));line-height:1.7;color:var(--text2)}
 
 /* Pastel PWA family components */
 .hdr{padding:14px max(18px,env(safe-area-inset-right)) 12px max(18px,env(safe-area-inset-left));padding-top:calc(env(safe-area-inset-top) + 14px);border-bottom:1px solid var(--sep)}
-.hdr h1{font-size:28px;letter-spacing:-.04em}
+.hdr h1{font-size:calc(28px * var(--scale));letter-spacing:-.04em}
 .icon-btn{width:44px;height:44px;border:1px solid #f3bdd0;background:#fff8fb;color:#a92d60}
 .tools{padding:10px max(16px,env(safe-area-inset-right)) 12px max(16px,env(safe-area-inset-left));border-bottom:1px solid var(--sep)}
 .pad{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
@@ -242,7 +242,7 @@ textarea.field{min-height:46vh;resize:vertical;font:14px/1.5 ui-monospace,SFMono
 /* FIX: this used to hit EVERY .empty .big, so the "No matches" magnifier was replaced
    by the app icon too. Scope it to the library-empty state. */
 .empty .big.applogo{font-size:0;width:146px;height:146px;margin:0 auto 18px;background:url('icons/icon-192.png') center/cover no-repeat;border-radius:34px;box-shadow:var(--shadow)}
-.empty h2{font-size:22px;letter-spacing:-.025em}
+.empty h2{font-size:calc(22px * var(--scale));letter-spacing:-.025em}
 .empty p{color:var(--text2);max-width:430px;margin:0 auto 22px}
 .btn{min-height:44px;border:1px solid var(--sep);border-radius:14px;background:var(--warn-bg);color:var(--accent)}
 .btn:hover{border-color:#d98cab;background:#ffe8f0}
@@ -259,7 +259,7 @@ textarea.field{min-height:46vh;resize:vertical;font:14px/1.5 ui-monospace,SFMono
 @media(max-width:520px){
   .empty .btns{flex-direction:column;align-items:stretch;max-width:320px;margin:0 auto}
   .empty .btn{width:100%}
-  .hdr h1{font-size:27px}
+  .hdr h1{font-size:calc(27px * var(--scale))}
 }
 /* FIX: the viewer header packed ~328px of non-shrinkable content (back label + 2x62px
    segment + 44px menu). On a 320pt screen the menu button was pushed off-screen and
@@ -275,7 +275,7 @@ textarea.field{min-height:46vh;resize:vertical;font:14px/1.5 ui-monospace,SFMono
 }
 @media(max-width:359px){
   #viewerRoot #vBack .lbl{display:none}
-  #viewerRoot .seg button{padding:5px 8px;font-size:13px}
+  #viewerRoot .seg button{padding:5px 8px;font-size:calc(13px * var(--scale))}
 }
 </style>
 </head>
@@ -468,8 +468,18 @@ const Storage={backend:'memory',db:null,mem:new Map(),set:new Map(),
   async getSetting(k,fb){if(this.backend==='indexeddb'){const r=await this.db.settings.get(k);return r?r.value:fb}return this.set.has(k)?this.set.get(k):fb},
   async setSetting(k,v){if(this.backend==='indexeddb')await this.db.settings.put({key:k,value:v});else this.set.set(k,v)}
 };
-const State={docs:[],query:'',current:null,viewMode:'preview',reading:false,iframe:null,curScrollY:0,draft:null,wrapTouched:false,sourceLines:[],codeMatches:[],codeIdx:-1,bannerDismissed:false,noticeDismissed:{},prefs:{sort:'opened',wordWrap:false,defaultJs:true,lastBackupAt:0}};
-async function loadPrefs(){State.prefs.sort=await Storage.getSetting('sort','opened');State.prefs.wordWrap=await Storage.getSetting('wordWrap',false);State.prefs.defaultJs=await Storage.getSetting('defaultJs',true);State.prefs.lastBackupAt=await Storage.getSetting('lastBackupAt',0);State.bannerDismissed=await Storage.getSetting('bannerDismissed',false)}
+const State={docs:[],query:'',current:null,viewMode:'preview',reading:false,iframe:null,curScrollY:0,draft:null,wrapTouched:false,sourceLines:[],codeMatches:[],codeIdx:-1,bannerDismissed:false,noticeDismissed:{},prefs:{sort:'opened',wordWrap:false,defaultJs:true,lastBackupAt:0,fontScale:4}};
+async function loadPrefs(){State.prefs.sort=await Storage.getSetting('sort','opened');State.prefs.wordWrap=await Storage.getSetting('wordWrap',false);State.prefs.defaultJs=await Storage.getSetting('defaultJs',true);State.prefs.lastBackupAt=await Storage.getSetting('lastBackupAt',0);State.prefs.fontScale=await Storage.getSetting('fontScale',4);State.bannerDismissed=await Storage.getSetting('bannerDismissed',false)}
+/* Text-size steps. Step 4 = 1.0 = today's default look, unchanged. The other
+   steps scale everything proportionally around that same default (the app's
+   own baseline), not the generic webapp-standard px values, so the app you
+   already use does not shift size at the default step. */
+const FONT_SCALES={1:0.5,2:0.667,3:0.833,4:1,5:1.167,6:1.417};
+function applyFontScale(level){
+  const n=FONT_SCALES[level]?level:4;
+  document.documentElement.style.setProperty('--scale',FONT_SCALES[n]);
+  State.prefs.fontScale=n;
+}
 async function refreshDocs(){State.docs=await Storage.listDocs()}
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700)}
 function closeSheet(){$('#sheetOverlay').classList.remove('show')}
@@ -756,6 +766,11 @@ function renderSettings(){
   app.innerHTML='<header class="hdr"><button class="link-btn" id="sBack">'+ICON.back+' Library</button><div class="ttl">Settings</div><span style="width:48px"></span></header>'
     +'<div class="scroll"><div class="wrapw pad">'
     +(Storage.backend==='memory'?'<div class="banner">'+ICON.shield+'<div><b>Memory mode.</b> IndexedDB not available here. Works normally on GitHub Pages.</div></div>':'')
+    +'<div class="label">Text size</div>'
+    +'<div class="group"><div class="gitem" style="display:block">'
+    +'<div class="seg" id="fsSeg" role="group" aria-label="Text size">'+[1,2,3,4,5,6].map(n=>'<button data-n="'+n+'" class="'+(State.prefs.fontScale===n?'on':'')+'" aria-pressed="'+(State.prefs.fontScale===n?'true':'false')+'">'+n+'</button>').join('')+'</div>'
+    +'<div class="s" style="margin-top:8px">Step 4 is today’s normal size. Input boxes always stay large enough that Safari won’t zoom in on them.</div>'
+    +'</div><div class="gitem tap" id="fsReset"><div class="gl"><div class="t" style="color:var(--accent)">Reset to default</div></div></div></div>'
     +'<div class="label">New documents</div>'
     +'<div class="group"><div class="gitem"><div class="gl"><div class="t">Allow JavaScript by default</div><div class="s">Can be changed per document.</div></div><label class="switch"><input type="checkbox" id="setJs"'+(State.prefs.defaultJs?' checked':'')+'><span class="track"></span></label></div></div>'
     +'<div class="label">Storage</div>'
@@ -773,6 +788,8 @@ function renderSettings(){
     +'<div class="foot">Vault v2.1 \u00B7 '+(Storage.backend==='indexeddb'?'IndexedDB':'memory (temporary)')+'</div>'
     +'</div></div>';
   $('#sBack').onclick=()=>location.hash='#/';
+  $('#fsSeg').addEventListener('click',e=>{const b=e.target.closest('button[data-n]');if(!b)return;const n=+b.dataset.n;applyFontScale(n);Storage.setSetting('fontScale',n);renderSettings()});
+  $('#fsReset').onclick=()=>{applyFontScale(4);Storage.setSetting('fontScale',4);renderSettings();toast('Text size reset')};
   $('#setJs').addEventListener('change',e=>{State.prefs.defaultJs=e.target.checked;Storage.setSetting('defaultJs',e.target.checked)});
   $('#doExport').onclick=exportBackup;$('#doCopyText').onclick=copyBackupText;$('#doImport').onclick=()=>$('#fileBackup').click();
   $('#lastBak').textContent=State.prefs.lastBackupAt?'Last backup '+fmtDate(State.prefs.lastBackupAt):'No backup yet';
@@ -809,7 +826,7 @@ function showBackupText(json){const ov=$('#modalOverlay'),box=$('#modalBox');box
 function normalizeImported(d,existing){let id=(d.id&&typeof d.id==='string')?d.id:uid();if(existing.has(id))id=uid();const content=typeof d.content==='string'?d.content:'',now=Date.now();return{id,title:(d.title||extractTitle(content)||'Untitled').toString().slice(0,200),content,wrap:typeof d.wrap==='boolean'?d.wrap:!looksLikeFullDoc(content),wrapStyle:d.wrapStyle==='minimal'?'minimal':'styled',jsEnabled:typeof d.jsEnabled==='boolean'?d.jsEnabled:true,selfContained:!!d.selfContained,scrollPosition:+d.scrollPosition||0,favorite:!!d.favorite,tags:Array.isArray(d.tags)?d.tags:[],sizeBytes:byteLen(content),createdAt:+d.createdAt||now,updatedAt:+d.updatedAt||now,lastOpenedAt:+d.lastOpenedAt||null}}
 $('#fileBackup').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;let data;try{data=JSON.parse(await f.text())}catch(err){toast('Invalid backup file');e.target.value='';return}const docs=Array.isArray(data)?data:(data&&Array.isArray(data.documents)?data.documents:null);if(!docs){toast('Unrecognized format');e.target.value='';return}const existing=new Set(State.docs.map(d=>d.id));let n=0,fail=0;for(const raw of docs){if(!raw||typeof raw.content!=='string')continue;const doc=normalizeImported(raw,existing);try{await Storage.saveDoc(doc);existing.add(doc.id);n++}catch(err){console.error(err);fail++}}e.target.value='';await refreshDocs();toast(fail?('Imported '+n+', '+fail+' failed'):('Imported '+n+' document'+(n===1?'':'s')));router()});
 async function maybeFirstRun(){if(await Storage.getSetting('firstRunSeen',false))return;await modal({title:'Welcome to Vault',message:'A private, offline library for your HTML documents.<br><br><b>Important:</b> Add this app to your Home Screen and export backups regularly.',confirmLabel:'Got it',hideCancel:true});await Storage.setSetting('firstRunSeen',true)}
-(async function init(){await Storage.init();await loadPrefs();await refreshDocs();await router();await maybeFirstRun()})();
+(async function init(){await Storage.init();await loadPrefs();applyFontScale(State.prefs.fontScale);await refreshDocs();await router();await maybeFirstRun()})();
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(registration=>registration.update()).catch(()=>{}))}
 if('serviceWorker' in navigator){let reloaded=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloaded)return;reloaded=true;location.reload()})}
 </script>
