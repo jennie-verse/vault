@@ -188,7 +188,8 @@ textarea.field{min-height:46vh;resize:vertical;font:14px/1.5 ui-monospace,SFMono
 .code-tools .csearch{flex:1;min-width:0}
 .code-tools .csearch input{width:100%;border:0;background:rgba(120,120,128,.14);border-radius:9px;padding:7px 10px;font-size:16px;outline:none;color:var(--text)}
 .cnav{display:flex;align-items:center;gap:2px;color:var(--text3);font-size:calc(12px * var(--scale));flex:0 0 auto}
-.cnav button{border:0;background:transparent;color:var(--accent);width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.cnav button{position:relative;border:0;background:transparent;color:var(--accent);width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.cnav button::before{content:"";position:absolute;inset:-7px}
 .cnav button:active{background:rgba(120,120,128,.16)}
 .cnav .cnt{min-width:40px;text-align:center;white-space:nowrap}
 .ctgl{border:0;background:rgba(120,120,128,.14);color:var(--text2);border-radius:8px;height:30px;padding:0 9px;font-size:calc(12px * var(--scale));font-weight:600;flex:0 0 auto}
@@ -276,6 +277,13 @@ textarea.field{min-height:46vh;resize:vertical;font:14px/1.5 ui-monospace,SFMono
 @media(max-width:359px){
   #viewerRoot #vBack .lbl{display:none}
   #viewerRoot .seg button{padding:5px 8px;font-size:calc(13px * var(--scale))}
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
 }
 </style>
 </head>
@@ -524,7 +532,7 @@ function modal(opts){
     ok.onclick=()=>{const v=inp?inp.value:true;done(v)};row.appendChild(ok);
     box.appendChild(row);ov.classList.add('show');
     activeModalDismiss=()=>done(null);
-    if(inp){setTimeout(()=>{inp.focus();inp.select()},60);inp.addEventListener('keydown',e=>{if(e.key==='Enter')ok.click()})}
+    if(inp){setTimeout(()=>{inp.focus();inp.select()},60);inp.addEventListener('keydown',e=>{if(e.isComposing||e.keyCode===229)return;if(e.key==='Enter')ok.click()})}
   });
 }
 async function router(){
