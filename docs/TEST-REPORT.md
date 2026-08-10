@@ -87,6 +87,18 @@ Vault의 문서는 개인 HTML 원문입니다. 그래서 이 항목을 여러 �
 - [x] 새 파일 3개가 캐시 목록에 있고, 공용 모듈은 설치를 막지 않는 선택 캐시입니다
 - [x] Settings에 App version이 보입니다
 
+## 배포
+
+- 커밋 `a6cfa8f`, `jennie-verse/vault` main. 파일 8개 (수정 5 · 추가 3)
+- GitHub Actions 워크플로 `Deploy to GitHub Pages` 성공 (run 31416726656)
+- 배포 확인
+  - `/vault/` — CSP에 `https://api.github.com` 있음
+  - `/vault/src/version.js` — `2026.08.10-sync1`
+  - `/vault/sw.js` — `const VERSION = '2026.08.10-sync1'`
+  - `/shared/v1/sync.js` — 200
+- 워크플로 로그에 Node.js 20 deprecation 경고가 있으나 배포에는 영향이 없습니다.
+  `actions/*` 를 다음에 올릴 때 함께 정리하면 됩니다.
+
 ## Pending — 실기기(iPhone)에서만 확인 가능 (2026-08-10 추가분)
 
 - [ ] Settings → Sync에서 기기 이름·토큰을 넣고 켜기
