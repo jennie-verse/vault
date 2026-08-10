@@ -1,5 +1,5 @@
 // sw.js — cache-first app shell, versioned
-const VERSION = '2026.08.09-b1';   // bump on EVERY deploy to ship updates
+const VERSION = '2026.08.10-sync1';   // must match APP_BUILD in src/version.js
 const CACHE   = 'html-vault-' + VERSION;
 
 // All same-origin. Every file here must exist or install() fails.
@@ -13,15 +13,24 @@ const ASSETS = [
   './vendor/dexie.min.js',
   './vendor/highlight.min.js',
   './vendor/fonts/lexend-400.woff2',
-  './vendor/fonts/lexend-700.woff2'
+  './vendor/fonts/lexend-700.woff2',
+  './src/version.js',
+  './src/sync.js',
+  './src/sync-runner.js'
 ];
 
+// Nice to have offline, but not worth failing an install over. The shared sync
+// module lives in another repository on the same origin, and Vault must install
+// and run even if it is briefly unavailable.
+const OPTIONAL = ['../shared/v1/sync.js'];
+
 self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE)
-      .then(c => c.addAll(ASSETS))
-      .then(() => self.skipWaiting())
-  );
+  e.waitUntil((async () => {
+    const c = await caches.open(CACHE);
+    await c.addAll(ASSETS);
+    await Promise.all(OPTIONAL.map(p => c.add(new URL(p, self.registration.scope)).catch(() => null)));
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', e => {

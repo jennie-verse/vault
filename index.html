@@ -10,6 +10,18 @@
 <!-- 'default' keeps dark status-bar text readable on the single light theme. -->
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Vault">
+<!-- CSP: this page is deliberately permissive about *resources* and strict about
+     *network egress*. Stored documents are shown with iframe.srcdoc, and a srcdoc
+     iframe inherits this policy, so locking img/style/font to 'self' would break
+     saved documents that pull in external images or web fonts — exactly what
+     "Make available offline…" exists to fix, and not something to force on
+     documents already in the vault.
+
+     connect-src is the line that matters here: it proves the app only ever talks
+     to api.github.com, and nothing else can open a socket. script-src needs
+     'unsafe-inline' because Vault is a single-file app whose whole program is one
+     inline <script>; the sandboxed preview never gets same-origin access. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src * 'unsafe-inline' data:; img-src * data: blob:; font-src * data:; media-src * data: blob:; connect-src 'self' https://api.github.com; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>Vault</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -583,9 +595,12 @@ function updateList(){
 }
 function newSheet(){sheet('Add document',[{label:'Paste HTML',run:openNew},{label:'Import file (.html .htm .txt)',run:()=>$('#fileDoc').click()}])}
 function docActions(id){const d=State.docs.find(x=>x.id===id);if(!d)return;sheet(d.title||'Untitled',[{label:'Open',run:()=>location.hash='#/view/'+encodeURIComponent(id)},{label:'Rename',run:()=>renameDoc(id)},{label:'Duplicate',run:()=>duplicateDoc(id)},{label:'Delete',danger:true,run:()=>deleteDoc(id)}])}
-async function renameDoc(id){const d=await Storage.getDoc(id);if(!d)return;const v=await modal({title:'Rename',input:true,value:d.title||'',placeholder:'Title',confirmLabel:'Save'});if(v===null)return;const title=(v.trim()||extractTitle(d.content)||'Untitled').slice(0,200);await Storage.patch(id,{title,updatedAt:Date.now()});await refreshDocs();if(State.current&&State.current.id===id){State.current.title=title;const tt=$('#vTitle');if(tt)tt.textContent=title}else updateList();toast('Renamed')}
-async function duplicateDoc(id){const d=await Storage.getDoc(id);if(!d)return;const now=Date.now();await Storage.saveDoc({...d,id:uid(),title:(d.title||'Untitled')+' copy',createdAt:now,updatedAt:now,lastOpenedAt:now,scrollPosition:0});await refreshDocs();updateList();toast('Duplicated')}
-async function deleteDoc(id){const ok=await modal({title:'Delete document?',message:'This cannot be undone.',confirmLabel:'Delete',danger:true});if(!ok)return;await Storage.deleteDoc(id);await refreshDocs();if(State.current&&State.current.id===id){State.current=null;location.hash='#/'}else updateList();toast('Deleted')}
+async function renameDoc(id){const d=await Storage.getDoc(id);if(!d)return;const v=await modal({title:'Rename',input:true,value:d.title||'',placeholder:'Title',confirmLabel:'Save'});if(v===null)return;const title=(v.trim()||extractTitle(d.content)||'Untitled').slice(0,200);await Storage.patch(id,{title,updatedAt:Date.now()});await refreshDocs();syncTouch({...d,title});if(State.current&&State.current.id===id){State.current.title=title;const tt=$('#vTitle');if(tt)tt.textContent=title}else updateList();toast('Renamed')}
+async function duplicateDoc(id){const d=await Storage.getDoc(id);if(!d)return;const now=Date.now();const copy={...d,id:uid(),title:(d.title||'Untitled')+' copy',createdAt:now,updatedAt:now,lastOpenedAt:now,scrollPosition:0};await Storage.saveDoc(copy);await refreshDocs();syncTouch(copy);updateList();toast('Duplicated')}
+async function deleteDoc(id){const ok=await modal({title:'Delete document?',message:'This cannot be undone.',confirmLabel:'Delete',danger:true});if(!ok)return;const gone=State.docs.find(x=>x.id===id)||{id:id};await Storage.deleteDoc(id);/* A delete mark is written ONLY here, where the user asked for it. It is never
+     inferred from "this document is missing locally" — that inference is what
+     erased data in focus on 2026-08-09. */
+  syncReady.then(ok2=>{if(!ok2)return;Sync.markDeleted(gone);Sync.queueEvent(Sync.docToEvent(gone,{deleted:true}));SyncRunner.schedulePush()});await refreshDocs();if(State.current&&State.current.id===id){State.current=null;location.hash='#/'}else updateList();toast('Deleted')}
 function openNew(draft){State.draft=draft||{id:null,title:'',content:'',wrap:true,wrapStyle:'styled',jsEnabled:State.prefs.defaultJs,createdAt:null};State.wrapTouched=!!(draft&&draft.wrapTouched);if((location.hash||'')==='#/new')renderNew();else location.hash='#/new'}
 function renderNew(){
   if(!State.draft)State.draft={id:null,title:'',content:'',wrap:true,wrapStyle:'styled',jsEnabled:State.prefs.defaultJs,createdAt:null};
@@ -620,7 +635,7 @@ function renderNew(){
   $('#importInstead').onclick=()=>$('#fileDoc').click();
   upd();
 }
-async function saveDraft(){const d=State.draft;if(!d||!d.content.trim()){toast('Nothing to save');return}const now=Date.now();const doc={id:d.id||uid(),title:(d.title.trim()||extractTitle(d.content)||'Untitled').slice(0,200),content:d.content,wrap:!!d.wrap,wrapStyle:d.wrapStyle==='minimal'?'minimal':'styled',jsEnabled:!!d.jsEnabled,selfContained:!!d.selfContained,scrollPosition:0,favorite:false,tags:[],sizeBytes:byteLen(d.content),createdAt:d.createdAt||now,updatedAt:now,lastOpenedAt:now};try{await Storage.saveDoc(doc)}catch(err){console.error(err);toast(err&&err.name==='QuotaExceededError'?'Storage full \u2014 export a backup and remove old documents':'Save failed');return}await refreshDocs();State.draft=null;location.hash='#/view/'+encodeURIComponent(doc.id);toast('Saved')}
+async function saveDraft(){const d=State.draft;if(!d||!d.content.trim()){toast('Nothing to save');return}const now=Date.now();const doc={id:d.id||uid(),title:(d.title.trim()||extractTitle(d.content)||'Untitled').slice(0,200),content:d.content,wrap:!!d.wrap,wrapStyle:d.wrapStyle==='minimal'?'minimal':'styled',jsEnabled:!!d.jsEnabled,selfContained:!!d.selfContained,scrollPosition:0,favorite:false,tags:[],sizeBytes:byteLen(d.content),createdAt:d.createdAt||now,updatedAt:now,lastOpenedAt:now};try{await Storage.saveDoc(doc)}catch(err){console.error(err);toast(err&&err.name==='QuotaExceededError'?'Storage full \u2014 export a backup and remove old documents':'Save failed');return}await refreshDocs();syncTouch(doc);State.draft=null;location.hash='#/view/'+encodeURIComponent(doc.id);toast('Saved')}
 /* FIX: file.text() always decodes as UTF-8, so EUC-KR / CP949 / UTF-16 files came in
    as mojibake with no warning. Sniff the BOM and any declared charset instead. */
 function decodeBuffer(buf){
@@ -791,9 +806,10 @@ function renderSettings(){
     +'<div class="gitem tap" id="doImport"><div class="gl"><div class="t" style="color:var(--accent)">Import backup</div><div class="s">Merges documents.</div></div>'+ICON.imp+'</div>'
     +'</div>'
     +(stale?'<div class="hint frag">No recent backup \u2014 consider exporting now.</div>':'')
+    +syncSectionHtml()
     +'<div class="label">Install to Home Screen</div>'
     +'<div class="group"><div class="gitem" style="display:block"><ol class="steps"><li>Open in <b>Safari</b> after deploying to GitHub Pages.</li><li>Tap the <b>Share</b> icon \u2197.</li><li>Choose <b>Add to Home Screen</b>.</li><li>Launch Vault from your Home Screen.</li></ol><div class="s" style="margin-top:8px">Installed apps keep storage beyond Safari\u2019s 7-day limit.</div></div></div>'
-    +'<div class="foot">Vault v2.1 \u00B7 '+(Storage.backend==='indexeddb'?'IndexedDB':'memory (temporary)')+'</div>'
+    +'<div class="foot">Vault v2.1 \u00B7 '+(Storage.backend==='indexeddb'?'IndexedDB':'memory (temporary)')+'<br>App version '+esc(APP_BUILD)+'</div>'
     +'</div></div>';
   $('#sBack').onclick=()=>location.hash='#/';
   $('#fsSeg').addEventListener('click',e=>{const b=e.target.closest('button[data-n]');if(!b)return;const n=+b.dataset.n;applyFontScale(n);Storage.setSetting('fontScale',n);renderSettings()});
@@ -801,7 +817,86 @@ function renderSettings(){
   $('#setJs').addEventListener('change',e=>{State.prefs.defaultJs=e.target.checked;Storage.setSetting('defaultJs',e.target.checked)});
   $('#doExport').onclick=exportBackup;$('#doCopyText').onclick=copyBackupText;$('#doImport').onclick=()=>$('#fileBackup').click();
   $('#lastBak').textContent=State.prefs.lastBackupAt?'Last backup '+fmtDate(State.prefs.lastBackupAt):'No backup yet';
+  bindSyncSection();
   fillStorage();
+}
+
+/* ── Sync section ────────────────────────────────────────────────────────
+   Sync is off until it is switched on here, and Vault is fully usable while it
+   stays off. Two rules are load-bearing:
+
+   1. The device name is asked for BEFORE sync is switched on. The context id is
+      fixed at creation and goes into the remote file name, so a name added
+      afterwards would only change the label — the file would stay
+      `context-3f2a1b9c`. Only a-z and 0-9 survive into the id.
+   2. Only titles, tags, dates and sizes are uploaded. Document HTML never
+      leaves this device. */
+
+function syncStatusText(){
+  if(!Sync)return 'Unavailable — the shared sync module could not be loaded.';
+  if(!Sync.isEnabled())return 'Off \u2014 everything stays on this device.';
+  const pending=Sync.pendingEventCount(),last=Sync.getLastSyncAt();
+  const ago=last?Math.max(0,Math.round((Date.now()-last)/60000))+' min ago':'never';
+  return 'On \u00B7 device '+(Sync.getContextId()||'\u2014')+' \u00B7 last sync '+ago+(pending?' \u00B7 '+pending+' queued':'');
+}
+
+function syncSectionHtml(){
+  if(!Sync)return '<div class="label">Sync</div><div class="group"><div class="gitem" style="display:block"><div class="s">Unavailable \u2014 the shared sync module could not be loaded. Vault works normally without it.</div></div></div>';
+  const hasCtx=!!Sync.getContextId(),ready=Sync.isReady();
+  return '<div class="label">Sync</div>'
+    +'<div class="group">'
+    +'<div class="gitem" style="display:block"><div class="s" id="syncStatus" role="status">'+esc(syncStatusText())+'</div></div>'
+    +'<div class="gitem" style="display:block"><div class="t">Device name</div>'
+    +'<input class="field" id="syncName" type="text" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="iphone-home" value="'+esc(Sync.getContextLabel())+'"'+(hasCtx?' disabled':'')+' style="margin-top:8px">'
+    +'<div class="s" style="margin-top:6px">English letters and numbers only \u2014 the file name is built from this and cannot be changed later.</div></div>'
+    +'<div class="gitem" style="display:block"><div class="t">Access token</div>'
+    +'<input class="field" id="syncToken" type="password" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="'+esc(Sync.tokenHint()||'github_pat_\u2026')+'" style="margin-top:8px"></div>'
+    +'<div class="gitem tap" id="syncSaveToken"><div class="gl"><div class="t" style="color:var(--accent)">Save token</div></div></div>'
+    +'<div class="gitem tap" id="syncClearToken"><div class="gl"><div class="t" style="color:var(--accent)">Clear token</div></div></div>'
+    +'<div class="gitem"><div class="gl"><div class="t">Sync with GitHub</div><div class="s">Titles and dates only \u2014 never the document itself.</div></div><label class="switch"><input type="checkbox" id="syncEnabled"'+(Sync.isEnabled()?' checked':'')+'><span class="track"></span></label></div>'
+    +'<div class="gitem tap" id="syncNow"'+(ready?'':' style="opacity:.5"')+'><div class="gl"><div class="t" style="color:var(--accent)">Sync now</div></div></div>'
+    +'</div>'
+    +'<div class="hint">Document HTML is never uploaded. Keep using <b>Export backup</b> to keep a copy of the contents.</div>';
+}
+
+function setSyncStatus(msg){const el=$('#syncStatus');if(el)el.textContent=msg||syncStatusText()}
+
+function bindSyncSection(){
+  if(!Sync)return;
+  SyncRunner.onSyncState((state,detail)=>{
+    if(state==='syncing'){setSyncStatus('Syncing\u2026');return}
+    if(state==='error'){setSyncStatus(Sync.describeError(detail&&detail.error));return}
+    setSyncStatus();
+  });
+  $('#syncSaveToken').onclick=()=>{
+    if(!Sync.saveToken($('#syncToken').value||'')){toast('Enter a token first');return}
+    renderSettings();setSyncStatus('Token saved.');
+  };
+  $('#syncClearToken').onclick=async()=>{
+    const ok=await modal({title:'Clear the token?',message:'Sync stops until a token is entered again. Nothing stored on this device is removed.',confirmLabel:'Clear',danger:true});
+    if(!ok)return;
+    Sync.clearToken();Sync.setEnabled(false);renderSettings();setSyncStatus('Token cleared.');
+  };
+  $('#syncEnabled').addEventListener('change',async e=>{
+    if(!e.target.checked){Sync.setEnabled(false);renderSettings();return}
+    if(!Sync.getToken()){toast('Save an access token first');renderSettings();return}
+    if(!Sync.getContextId()){
+      const typed=($('#syncName').value||'').trim();
+      if(!/[a-z0-9]/i.test(typed)){toast('Enter a device name using English letters or numbers');renderSettings();return}
+      try{await Sync.ensureContext(typed)}
+      catch(err){renderSettings();setSyncStatus(Sync.describeError(err));return}
+      Sync.setContextLabel(typed);
+    }
+    Sync.setEnabled(true);renderSettings();await doSyncNow();
+  });
+  $('#syncNow').onclick=doSyncNow;
+}
+
+async function doSyncNow(){
+  if(!Sync||!Sync.isReady())return;
+  setSyncStatus('Syncing\u2026');
+  const r=await SyncRunner.runSync();
+  setSyncStatus(r&&r.error?Sync.describeError(r.error):undefined);
 }
 async function fillStorage(){const te=$('#stoText'),bar=$('#stoBar'),sub=$('#stoSub');if(!te)return;const n=State.docs.length,db=State.docs.reduce((a,d)=>a+(d.sizeBytes||byteLen(d.content)),0);te.textContent=n+' document'+(n===1?'':'s')+' \u00B7 '+fmtBytes(db);if(navigator.storage&&navigator.storage.estimate){try{const e=await navigator.storage.estimate(),u=e.usage||0,q=e.quota||0;if(q>0){bar.style.width=Math.min(100,Math.round(u/q*100))+'%';sub.textContent='Using '+fmtBytes(u)+' of ~'+fmtBytes(q);return}}catch(_){}}sub.textContent='Storage estimate unavailable.'}
 async function markBackup(){State.prefs.lastBackupAt=Date.now();await Storage.setSetting('lastBackupAt',State.prefs.lastBackupAt);if(location.hash.startsWith('#/settings'))renderSettings()}
@@ -832,9 +927,44 @@ function exportBackup(){
 function copyBackupText(){showBackupText(backupJson())}
 function showBackupText(json){const ov=$('#modalOverlay'),box=$('#modalBox');box.innerHTML='';const h=document.createElement('div');h.className='modal-title';h.textContent='Backup as text';box.appendChild(h);const p=document.createElement('div');p.className='modal-msg';p.innerHTML='Copy everything below and save as <b>backup.json</b>.';box.appendChild(p);const ta=document.createElement('textarea');ta.className='field';ta.style.cssText='height:34vh;font-family:ui-monospace,monospace;font-size:16px;white-space:pre';ta.setAttribute('readonly','');ta.value=json;box.appendChild(ta);const row=document.createElement('div');row.className='modal-actions';const cl=document.createElement('button');cl.className='btn';cl.textContent='Done';const shut=()=>{ov.classList.remove('show');activeModalDismiss=null};cl.onclick=shut;const cp=document.createElement('button');cp.className='btn btn-primary';cp.textContent='Copy';cp.onclick=async()=>{const ok=await copyText(json);if(ok)markBackup();toast(ok?'Backup copied':'Select and copy manually')};row.appendChild(cl);row.appendChild(cp);box.appendChild(row);ov.classList.add('show');activeModalDismiss=shut}
 function normalizeImported(d,existing){let id=(d.id&&typeof d.id==='string')?d.id:uid();if(existing.has(id))id=uid();const content=typeof d.content==='string'?d.content:'',now=Date.now();return{id,title:(d.title||extractTitle(content)||'Untitled').toString().slice(0,200),content,wrap:typeof d.wrap==='boolean'?d.wrap:!looksLikeFullDoc(content),wrapStyle:d.wrapStyle==='minimal'?'minimal':'styled',jsEnabled:typeof d.jsEnabled==='boolean'?d.jsEnabled:true,selfContained:!!d.selfContained,scrollPosition:+d.scrollPosition||0,favorite:!!d.favorite,tags:Array.isArray(d.tags)?d.tags:[],sizeBytes:byteLen(content),createdAt:+d.createdAt||now,updatedAt:+d.updatedAt||now,lastOpenedAt:+d.lastOpenedAt||null}}
-$('#fileBackup').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;let data;try{data=JSON.parse(await f.text())}catch(err){toast('Invalid backup file');e.target.value='';return}const docs=Array.isArray(data)?data:(data&&Array.isArray(data.documents)?data.documents:null);if(!docs){toast('Unrecognized format');e.target.value='';return}const existing=new Set(State.docs.map(d=>d.id));let n=0,fail=0;for(const raw of docs){if(!raw||typeof raw.content!=='string')continue;const doc=normalizeImported(raw,existing);try{await Storage.saveDoc(doc);existing.add(doc.id);n++}catch(err){console.error(err);fail++}}e.target.value='';await refreshDocs();toast(fail?('Imported '+n+', '+fail+' failed'):('Imported '+n+' document'+(n===1?'':'s')));router()});
+$('#fileBackup').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;let data;try{data=JSON.parse(await f.text())}catch(err){toast('Invalid backup file');e.target.value='';return}const docs=Array.isArray(data)?data:(data&&Array.isArray(data.documents)?data.documents:null);if(!docs){toast('Unrecognized format');e.target.value='';return}const existing=new Set(State.docs.map(d=>d.id));let n=0,fail=0;for(const raw of docs){if(!raw||typeof raw.content!=='string')continue;const doc=normalizeImported(raw,existing);try{await Storage.saveDoc(doc);existing.add(doc.id);n++}catch(err){console.error(err);fail++}}e.target.value='';await refreshDocs();syncTouch(null);toast(fail?('Imported '+n+', '+fail+' failed'):('Imported '+n+' document'+(n===1?'':'s')));router()});
 async function maybeFirstRun(){if(await Storage.getSetting('firstRunSeen',false))return;await modal({title:'Welcome to Vault',message:'A private, offline library for your HTML documents.<br><br><b>Important:</b> Add this app to your Home Screen and export backups regularly.',confirmLabel:'Got it',hideCancel:true});await Storage.setSetting('firstRunSeen',true)}
-(async function init(){await Storage.init();await loadPrefs();applyFontScale(State.prefs.fontScale);await refreshDocs();await router();await maybeFirstRun()})();
+/* ── Sync ────────────────────────────────────────────────────────────────
+   Vault is one inline script, so the sync modules are pulled in with a dynamic
+   import() — which works in a classic script. It is deliberately NOT awaited at
+   startup: if those files cannot be fetched (offline first run, 404, a stale
+   Service Worker cache) Vault must still open and work exactly as before.
+   Sync simply stays unavailable until the next launch.
+
+   Only document METADATA leaves this device. The HTML itself never does — see
+   src/sync.js. Backups stay on `Export backup`, which keeps the content local. */
+let Sync=null,SyncRunner=null,APP_BUILD='unknown';
+const syncReady=(async()=>{
+  try{
+    const [s,r,v]=await Promise.all([
+      import('./src/sync.js'),import('./src/sync-runner.js'),import('./src/version.js')
+    ]);
+    Sync=s;SyncRunner=r;APP_BUILD=v.APP_BUILD;
+    // The upload list is read from storage, never from State.docs: a half-loaded
+    // screen must not be able to shrink what is already stored remotely.
+    SyncRunner.attach({getDocs:()=>Storage.listDocs()});
+    return true;
+  }catch(e){console.warn('Sync unavailable:',e);return false}
+})();
+
+/** Queue an event and ask for an upload. Safe to call before sync has loaded. */
+function syncTouch(doc,opts){
+  syncReady.then(ok=>{
+    if(!ok)return;
+    if(doc)Sync.queueEvent(Sync.docToEvent(doc,opts));
+    SyncRunner.schedulePush();
+  });
+}
+
+(async function init(){await Storage.init();await loadPrefs();applyFontScale(State.prefs.fontScale);await refreshDocs();await router();await maybeFirstRun();
+  // Runs only when sync is enabled and a token and context exist.
+  syncReady.then(ok=>{if(ok)SyncRunner.runSync().catch(()=>{})});
+})();
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(registration=>registration.update()).catch(()=>{}))}
 if('serviceWorker' in navigator){let reloaded=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloaded)return;reloaded=true;location.reload()})}
 </script>
