@@ -26,12 +26,13 @@
 
 ## 실배포
 
-- remote `main`: `6838367f83af9f05c2c95d05a50989fb047280bb`
-- GitHub Actions: run `31455355380`, success
+- compat3 검증 배포 HEAD: `170d15c550f50a251752d048bc95b7efe75a4d11`
+- GitHub Actions: run `31457239920`, success
 - Pages: `https://jennie-verse.github.io/vault/`
 - live `index.html`, `src/package.js`, `src/version.js`, `sw.js`, `preview-host.html` SHA-256이 local release와 각각 일치
 - `/tests/package.test.html`, `/package.json`: HTTP 404 — 개발 artifact 제외 확인
-- compat3 local Settings build: `2026.08.10-compat3`; live 결과는 최종 Actions 배포 뒤 갱신
+- live Settings build: `2026.08.10-compat3`; 기존 2 document 보존, page identity·첫 화면·Settings interaction·console health PASS
+- GitHub deployment `5844155625`: `github-pages` success, environment URL 일치
 
 과거 compat1 결과는 아래 역사 기준으로 유지하되 현재 결과처럼 간주하지 않습니다. 기존 사용자가 수정해 둔 `WebApp/Tests/vault/` 경로 설명은 보존했고, 추가로 저장소 자체 `tests/`를 만들었습니다. workflow는 test 이후 allowlist artifact만 올려 tests/fixture/package metadata를 배포하지 않습니다.
 
