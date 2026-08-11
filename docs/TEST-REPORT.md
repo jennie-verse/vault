@@ -18,6 +18,18 @@
 | Civics Preview issues | PASS — 0 |
 | Civics SVG export | PARTIAL — 비어 있지 않은 6,264자 SVG DOM과 export handler 확인; nested data-URL download event는 Browser에서 관찰되지 않음 |
 | CSP/sandbox | PASS — 원격 origin 추가 없음, `allow-same-origin` 없음, preview `connect-src 'none'` |
+| Code 보기 | PASS — `vendor/mermaid-10.6.1.min.js`, `vendor/svg-pan-zoom-3.6.1.min.js` 상대경로 보존, data script 없음 |
+| offline app/package reload | PASS — server 종료 후 app shell 및 Civics graph·6 filters·Preview issues 0 유지 |
+| backup v2 actual export/restore | PARTIAL — 2 package document의 7.6 MB export UI 실행; in-app Browser가 download event/대용량 clipboard를 전달하지 않아 이번 session의 delete→restore는 완료 증거 없음 |
+
+## 실배포
+
+- remote `main`: `6838367f83af9f05c2c95d05a50989fb047280bb`
+- GitHub Actions: run `31455355380`, success
+- Pages: `https://jennie-verse.github.io/vault/`
+- live `index.html`, `src/package.js`, `src/version.js`, `sw.js`, `preview-host.html` SHA-256이 local release와 각각 일치
+- `/tests/package.test.html`, `/package.json`: HTTP 404 — 개발 artifact 제외 확인
+- live Settings build: `2026.08.10-compat2`; page identity·첫 화면·Settings interaction·console health PASS
 
 과거 compat1 결과는 아래 역사 기준으로 유지하되 현재 결과처럼 간주하지 않습니다. 기존 사용자가 수정해 둔 `WebApp/Tests/vault/` 경로 설명은 보존했고, 추가로 저장소 자체 `tests/`를 만들었습니다. workflow는 test 이후 allowlist artifact만 올려 tests/fixture/package metadata를 배포하지 않습니다.
 
