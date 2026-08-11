@@ -10,17 +10,9 @@
 <!-- 'default' keeps dark status-bar text readable on the single light theme. -->
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Vault">
-<!-- CSP: this page is deliberately permissive about *resources* and strict about
-     *network egress*. Stored documents are shown with iframe.srcdoc, and a srcdoc
-     iframe inherits this policy, so locking img/style/font to 'self' would break
-     saved documents that pull in external images or web fonts — exactly what
-     "Make available offline…" exists to fix, and not something to force on
-     documents already in the vault.
-
-     connect-src is the line that matters here: it proves the app only ever talks
-     to api.github.com, and nothing else can open a socket. script-src needs
-     'unsafe-inline' because Vault is a single-file app whose whole program is one
-     inline <script>; the sandboxed preview never gets same-origin access. -->
+<!-- Vault shell policy. Imported documents execute in preview-host.html under a
+     separate, stricter CSP. The app may contact only itself and api.github.com;
+     preview-host has connect-src 'none'. Neither iframe uses allow-same-origin. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src * 'unsafe-inline' data:; img-src * data: blob:; font-src * data:; media-src * data: blob:; connect-src 'self' https://api.github.com; worker-src 'self'; frame-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>Vault</title>
 <link rel="manifest" href="manifest.webmanifest">
@@ -28,6 +20,7 @@
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <script src="vendor/dexie.min.js"></script>
 <script src="vendor/highlight.min.js"></script>
+<script src="src/package.js"></script>
 <style>
 @font-face{font-family:'Lexend';font-style:normal;font-weight:400;font-display:swap;src:url('vendor/fonts/lexend-400.woff2') format('woff2')}
 @font-face{font-family:'Lexend';font-style:normal;font-weight:700;font-display:swap;src:url('vendor/fonts/lexend-700.woff2') format('woff2')}
@@ -94,10 +87,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   border-bottom:.5px solid var(--sep);z-index:20}
 .hdr h1{font-size:calc(22px * var(--scale));font-weight:700;margin:0;flex:1;letter-spacing:-.02em}
 .hdr .ttl{flex:1;font-size:calc(17px * var(--scale));font-weight:600;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px}
-.icon-btn{border:0;background:transparent;color:var(--accent);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.icon-btn{border:0;background:transparent;color:var(--accent);width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
 .icon-btn:active{background:rgba(120,120,128,.16)}
 .icon-btn svg{width:24px;height:24px}
-.link-btn{border:0;background:transparent;color:var(--accent);font-size:calc(17px * var(--scale));padding:6px 4px;white-space:nowrap}
+.link-btn{border:0;background:transparent;color:var(--accent);font-size:calc(17px * var(--scale));padding:6px 4px;min-height:44px;white-space:nowrap}
 /* ── Library ──────────────────────────────────────────── */
 .scroll{flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch}
 .wrapw{max-width:760px;margin:0 auto;width:100%}
@@ -159,7 +152,7 @@ textarea.field{min-height:46vh;resize:vertical;font:14px/1.5 ui-monospace,SFMono
 .switch input:checked+.track{background:#34c759}
 .switch input:checked+.track:before{transform:translateX(20px)}
 .seg{display:inline-flex;background:rgba(120,120,128,.16);border-radius:9px;padding:2px;gap:2px}
-.seg button{border:0;background:transparent;color:var(--text);font-size:calc(14px * var(--scale));font-weight:600;padding:5px 14px;border-radius:7px;min-width:62px}
+.seg button{border:0;background:transparent;color:var(--text);font-size:calc(14px * var(--scale));font-weight:600;padding:5px 14px;border-radius:7px;min-width:62px;min-height:44px}
 .seg button.on{background:var(--card2);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .bar{height:8px;border-radius:5px;background:rgba(120,120,128,.2);overflow:hidden;margin:8px 0 4px}
 .bar>i{display:block;height:100%;background:var(--accent);border-radius:5px;transition:width .3s}
@@ -265,7 +258,7 @@ textarea.field{min-height:46vh;resize:vertical;font:14px/1.5 ui-monospace,SFMono
 .field{min-height:44px;border-radius:14px}
 .switch input:checked+.track{background:var(--accent)}
 .seg{background:var(--warn-bg);border:1px solid var(--sep);border-radius:14px}
-.seg button{min-height:40px;border-radius:11px}
+.seg button{min-height:44px;border-radius:11px}
 .seg button.on{background:var(--card);color:var(--accent)}
 .row-main,.gitem{min-height:52px}
 .modal,.sheet .grp{border:1px solid #efc8d7;box-shadow:0 20px 60px rgba(72,28,58,.18)}
@@ -304,7 +297,7 @@ textarea.field{min-height:46vh;resize:vertical;font:14px/1.5 ui-monospace,SFMono
 <div class="ov" id="sheetOverlay"><div class="sheet" id="sheetBox"></div></div>
 <div class="modal-ov" id="modalOverlay"><div class="modal" id="modalBox"></div></div>
 <div class="toast" id="toast"></div>
-<input type="file" id="fileDoc" accept=".html,.htm,.xhtml,.shtml,.txt,.md,.markdown,.svg,text/html,text/plain,image/svg+xml" hidden>
+<input type="file" id="fileDoc" accept=".html,.htm,.xhtml,.shtml,.txt,.md,.markdown,.svg,.zip,text/html,text/plain,image/svg+xml,application/zip,application/x-zip-compressed" hidden>
 <input type="file" id="fileBackup" accept=".json,application/json" hidden>
 <script>
 const $=(s,r=document)=>r.querySelector(s);
@@ -358,7 +351,7 @@ function classifyHtml(s){
 function looksLikeFullDoc(s){return classifyHtml(s)==='full'}
 function extractTitle(s){let m=(s||'').match(/<title[^>]*>([\s\S]*?)<\/title>/i);if(m&&m[1].trim())return unesc(m[1].replace(/\s+/g,' ').trim()).slice(0,120);m=(s||'').match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);if(m){const t=unesc(m[1].replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim());if(t)return t.slice(0,120)}return''}
 function wrapFragment(inner){return'<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{font-family:Verdana,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:16px;line-height:1.55;color:#351a30;background:#fff;-webkit-text-size-adjust:100%}img,svg,video{max-width:100%;height:auto}table{max-width:100%;border-collapse:collapse}</style></head><body>'+inner+'</body></html>'}
-const INSTRUMENT='<scr'+'ipt>(function(){function s(){try{parent.postMessage({__hv:1,type:"scroll",y:(window.scrollY||document.documentElement.scrollTop||0)},"*")}catch(e){}}var r;window.addEventListener("scroll",function(){if(r)cancelAnimationFrame(r);r=requestAnimationFrame(s)},{passive:true});window.addEventListener("message",function(e){var d=e.data;if(d&&d.__hv===1&&d.type==="restore"){try{window.scrollTo(0,d.y||0)}catch(x){}}});document.addEventListener("click",function(e){var t=e.target,a=t&&t.closest?t.closest("a[href]"):null;if(!a)return;var raw=a.getAttribute("href")||"";if(raw.charAt(0)==="#")return;var p=(a.protocol||"").toLowerCase();if(p==="http:"||p==="https:"||p==="mailto:"||p==="tel:"||p==="sms:"){e.preventDefault();try{parent.postMessage({__hv:1,type:"open",url:a.href},"*")}catch(x){}}},true);function rdy(){try{parent.postMessage({__hv:1,type:"ready"},"*")}catch(e){}}if(document.readyState==="complete")rdy();else window.addEventListener("load",rdy);})();<\/scr'+'ipt>';
+function previewInstrument(session){return'<scr'+'ipt>(function(){var S='+JSON.stringify(session)+';function p(t,d){try{parent.postMessage(Object.assign({__hvPreview:1,session:S,type:t},d||{}),"*")}catch(e){}}function s(){p("scroll",{y:(window.scrollY||document.documentElement.scrollTop||0)})}var r;window.addEventListener("scroll",function(){if(r)cancelAnimationFrame(r);r=requestAnimationFrame(s)},{passive:true});window.addEventListener("message",function(e){var d=e.data;if(d&&d.__hvPreview===1&&d.session===S&&d.type==="restore"){try{window.scrollTo(0,d.y||0)}catch(x){}}});document.addEventListener("click",function(e){var a=e.target&&e.target.closest?e.target.closest("a[href]"):null;if(!a)return;var raw=a.getAttribute("href")||"";if(raw.charAt(0)==="#"){e.preventDefault();var f=raw.slice(1),id=f;try{id=decodeURIComponent(f)}catch(x){}var target=id?document.getElementById(id):document.documentElement;if(!target&&id){var named=document.getElementsByName(id);target=named&&named[0]}if(target){try{target.scrollIntoView({block:"start"})}catch(x){target.scrollIntoView()}s()}return}if(a.hasAttribute("download"))return;var u=a.href||raw,pcol=(a.protocol||"").toLowerCase();if(pcol==="http:"||pcol==="https:"||pcol==="mailto:"||pcol==="tel:"||pcol==="sms:"){e.preventDefault();p("open",{url:u})}else if(/^javascript:/i.test(raw)){e.preventDefault();p("runtime-error",{message:"javascript: links are blocked"})}},true);function rdy(){p("ready")}if(document.readyState==="complete")rdy();else window.addEventListener("load",rdy);})();<\/scr'+'ipt>'}
 function injectScript(html,script){const i=html.toLowerCase().lastIndexOf('</body>');return i!==-1?html.slice(0,i)+script+html.slice(i):html+script}
 /* Insert at the very top of <head> so shims run before any script the document ships. */
 function injectHead(html,frag){
@@ -381,13 +374,25 @@ function ensureViewport(html){
 const STORAGE_SHIM='<scr'+'ipt>(function(){function mk(){var m=Object.create(null);var api={getItem:function(k){k=String(k);return (k in m)?m[k]:null},setItem:function(k,v){m[String(k)]=String(v)},removeItem:function(k){delete m[String(k)]},clear:function(){m=Object.create(null)},key:function(i){var ks=Object.keys(m);return i<ks.length?ks[i]:null}};try{Object.defineProperty(api,"length",{get:function(){return Object.keys(m).length}})}catch(e){}return api}function works(n){try{var st=window[n];if(!st)return false;st.setItem("__hv","1");st.removeItem("__hv");return true}catch(e){return false}}["localStorage","sessionStorage"].forEach(function(n){if(works(n))return;var v=mk();try{Object.defineProperty(window,n,{configurable:true,get:function(){return v}})}catch(e){try{window[n]=v}catch(x){}}});try{document.cookie}catch(e){try{var ck="";Object.defineProperty(document,"cookie",{configurable:true,get:function(){return ck},set:function(x){ck=ck?ck+"; "+x:String(x)}})}catch(x){}}try{var rq=window.indexedDB.open("__hv_probe");rq.onsuccess=function(){try{rq.result.close();window.indexedDB.deleteDatabase("__hv_probe")}catch(e){}}}catch(e){try{Object.defineProperty(window,"indexedDB",{configurable:true,get:function(){return undefined}})}catch(x){}}})();<\/scr'+'ipt>';
 function wrapText(t){return'<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:16px;background:#fff}pre{font:15px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;color:#351a30;margin:0}</style></head><body><pre>'+esc(t)+'</pre></body></html>'}
 function wrapMinimal(inner){return'<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}</style></head><body>'+inner+'</body></html>'}
-function buildSrcdoc(doc){
+function stripUserScripts(html){
+  const parsed=new DOMParser().parseFromString(html,'text/html');
+  parsed.querySelectorAll('script').forEach(el=>el.remove());
+  parsed.querySelectorAll('*').forEach(el=>Array.from(el.attributes).forEach(a=>{if(/^on/i.test(a.name)||/^(?:javascript|file):/i.test(a.value||''))el.removeAttribute(a.name)}));
+  return '<!DOCTYPE html>\n'+parsed.documentElement.outerHTML;
+}
+function buildSrcdoc(doc,session){
+  if(doc.packageAssets){
+    const result=VaultPackage.materialize(doc,session,previewInstrument(session),STORAGE_SHIM);
+    State.previewWarnings=result.warnings;
+    return doc.jsEnabled?result.html:stripUserScripts(result.html).replace('</body>',previewInstrument(session)+'</body>');
+  }
   let inner;
   if(doc.wrap){const cls=classifyHtml(doc.content);
     inner=cls==='text'?wrapText(doc.content)
       :(doc.wrapStyle==='minimal'?wrapMinimal(doc.content):wrapFragment(doc.content));
   }else inner=ensureViewport(doc.content);
-  if(doc.jsEnabled){inner=injectHead(inner,STORAGE_SHIM);inner=injectScript(inner,INSTRUMENT)}
+  if(doc.jsEnabled)inner=injectHead(inner,STORAGE_SHIM);else inner=stripUserScripts(inner);
+  inner=injectScript(inner,previewInstrument(session));
   return inner;
 }
 
@@ -456,14 +461,29 @@ async function convertSelfContained(){
   await modal({title:'Done',message:rep,confirmLabel:'OK',hideCancel:true});
   if(State.viewMode==='preview')buildPreview();
 }
+async function checkOfflineResources(){
+  const d=State.current;if(!d)return;const r=VaultPackage.analyze(d.content);let parts=[];
+  if(d.packageAssets)parts.push('<b>Offline package:</b> '+Object.keys(d.packageAssets).length+' assets are stored with this document.');
+  if(r.packageLocal.length||r.rootRelative.length)parts.push('<b>Local references:</b> '+(r.packageLocal.length+r.rootRelative.length)+(d.packageAssets?' are resolved from the ZIP manifest.':' need companion files. Import a ZIP package for offline use.'));
+  if(r.remote.length)parts.push('<b>Remote resources:</b> '+r.remote.length+' remain online-only or are blocked by the private preview policy. Vault does not claim these are offline.');
+  if(r.classicScripts.length)parts.push('<b>Classic scripts:</b> package-local scripts are supported; remote scripts are blocked.');
+  if(r.moduleScripts.length)parts.push('<b>Unsupported:</b> '+r.moduleScripts.length+' ES module script'+(r.moduleScripts.length===1?'':'s')+'.');
+  if(r.restricted.length)parts.push('<b>Restricted features:</b> '+r.restricted.map(esc).join(', ')+'.');
+  if(!parts.length)parts.push('No external or package resources were detected. This document is self-contained.');
+  await modal({title:'Offline resource check',message:parts.join('<br><br>'),confirmLabel:'OK',hideCancel:true});
+}
 function previewNotices(d){
   var cls=classifyHtml(d.content),blocking=null;
   if(cls==='fragment-context')blocking='This is a context-dependent fragment (like a <tr>, <li>, or <option>) and can\u2019t render on its own. Wrap it in its parent element to preview it.';
   else if(cls==='head-only')blocking='This snippet only contains head elements (like <style> or <meta>) \u2014 there\u2019s nothing visible to display.';
-  var adv=[],a=analyzeResources(d.content);
-  if(!d.jsEnabled&&a.hasLinks)adv.push('JavaScript is off, so links won\u2019t open in a new tab and scripts won\u2019t run. Internal \u201C#section\u201D links still work.');
-  if(a.hasNonJs&&!d.selfContained)adv.push('Some elements load from the internet and may not appear offline \u2014 use the \u22EF menu \u2192 \u201CMake available offline.\u201D');
-  if(a.hasJs)adv.push('This document loads external scripts that need a connection.');
+  var adv=[],a=analyzeResources(d.content),detail=VaultPackage.analyze(d.content);
+  if(!d.jsEnabled)adv.push('Document JavaScript is off. Vault still handles safe in-document fragment links.');
+  if(d.packageAssets)adv.push('Offline ZIP package: '+Object.keys(d.packageAssets).length+' assets stored with this document.');
+  else if(detail.packageLocal.length||detail.rootRelative.length)adv.push('Local companion files are missing. Re-import the HTML and its assets together as a ZIP package.');
+  if(detail.remote.length)adv.push(detail.remote.length+' remote resource'+(detail.remote.length===1?' is':'s are')+' blocked or online-only in the private preview.');
+  if(detail.moduleScripts.length)adv.push('ES module scripts and their import graphs are not supported.');
+  if(detail.restricted.length)adv.push('Restricted document features were detected and may be blocked.');
+  if(Array.isArray(d.conversionWarnings)&&d.conversionWarnings.length)adv.push(d.conversionWarnings.join(' '));
   if(d.jsEnabled&&/\b(?:local|session)Storage\b/.test(d.content||''))adv.push('It saves settings in browser storage; the private sandbox keeps those in memory, so they reset when you leave.');
   return{blocking:blocking,advisory:adv.length?adv.join(' '):null};
 }
@@ -483,12 +503,13 @@ const Storage={backend:'memory',db:null,mem:new Map(),set:new Map(),
   async listDocs(){if(this.backend==='indexeddb')return await this.db.documents.toArray();return[...this.mem.values()].map(d=>({...d}))},
   async getDoc(id){if(this.backend==='indexeddb')return await this.db.documents.get(id);const d=this.mem.get(id);return d?{...d}:undefined},
   async saveDoc(doc){if(this.backend==='indexeddb')await this.db.documents.put(doc);else this.mem.set(doc.id,{...doc})},
+  async saveDocsAtomic(docs){if(this.backend==='indexeddb')await this.db.transaction('rw',this.db.documents,async()=>{await this.db.documents.bulkPut(docs)});else{const next=new Map(this.mem);docs.forEach(d=>next.set(d.id,{...d}));this.mem=next}},
   async patch(id,ch){if(this.backend==='indexeddb')await this.db.documents.update(id,ch);else{const d=this.mem.get(id);if(d)Object.assign(d,ch)}},
   async deleteDoc(id){if(this.backend==='indexeddb')await this.db.documents.delete(id);else this.mem.delete(id)},
   async getSetting(k,fb){if(this.backend==='indexeddb'){const r=await this.db.settings.get(k);return r?r.value:fb}return this.set.has(k)?this.set.get(k):fb},
   async setSetting(k,v){if(this.backend==='indexeddb')await this.db.settings.put({key:k,value:v});else this.set.set(k,v)}
 };
-const State={docs:[],query:'',current:null,viewMode:'preview',reading:false,iframe:null,curScrollY:0,draft:null,wrapTouched:false,sourceLines:[],codeMatches:[],codeIdx:-1,bannerDismissed:false,noticeDismissed:{},prefs:{sort:'opened',wordWrap:false,defaultJs:true,lastBackupAt:0,fontScale:4}};
+const State={docs:[],query:'',current:null,viewMode:'preview',reading:false,iframe:null,previewSession:null,previewWarnings:[],previewErrors:new Set(),curScrollY:0,draft:null,wrapTouched:false,sourceLines:[],codeMatches:[],codeIdx:-1,bannerDismissed:false,noticeDismissed:{},prefs:{sort:'opened',wordWrap:false,defaultJs:true,lastBackupAt:0,fontScale:4}};
 async function loadPrefs(){State.prefs.sort=await Storage.getSetting('sort','opened');State.prefs.wordWrap=await Storage.getSetting('wordWrap',false);State.prefs.defaultJs=await Storage.getSetting('defaultJs',true);State.prefs.lastBackupAt=await Storage.getSetting('lastBackupAt',0);State.prefs.fontScale=await Storage.getSetting('fontScale',4);State.bannerDismissed=await Storage.getSetting('bannerDismissed',false)}
 /* Text-size steps. Step 4 = 1.0 = today's default look, unchanged. The other
    steps scale everything proportionally around that same default (the app's
@@ -593,7 +614,7 @@ function updateList(){
   const ep=$('#emPaste');if(ep)ep.onclick=openNew;
   const ei=$('#emImport');if(ei)ei.onclick=()=>$('#fileDoc').click();
 }
-function newSheet(){sheet('Add document',[{label:'Paste HTML',run:openNew},{label:'Import file (.html .htm .txt)',run:()=>$('#fileDoc').click()}])}
+function newSheet(){sheet('Add document',[{label:'Paste HTML',run:openNew},{label:'Import HTML or ZIP…',run:()=>$('#fileDoc').click()}])}
 function docActions(id){const d=State.docs.find(x=>x.id===id);if(!d)return;sheet(d.title||'Untitled',[{label:'Open',run:()=>location.hash='#/view/'+encodeURIComponent(id)},{label:'Rename',run:()=>renameDoc(id)},{label:'Duplicate',run:()=>duplicateDoc(id)},{label:'Delete',danger:true,run:()=>deleteDoc(id)}])}
 async function renameDoc(id){const d=await Storage.getDoc(id);if(!d)return;const v=await modal({title:'Rename',input:true,value:d.title||'',placeholder:'Title',confirmLabel:'Save'});if(v===null)return;const title=(v.trim()||extractTitle(d.content)||'Untitled').slice(0,200);await Storage.patch(id,{title,updatedAt:Date.now()});await refreshDocs();syncTouch({...d,title});if(State.current&&State.current.id===id){State.current.title=title;const tt=$('#vTitle');if(tt)tt.textContent=title}else updateList();toast('Renamed')}
 async function duplicateDoc(id){const d=await Storage.getDoc(id);if(!d)return;const now=Date.now();const copy={...d,id:uid(),title:(d.title||'Untitled')+' copy',createdAt:now,updatedAt:now,lastOpenedAt:now,scrollPosition:0};await Storage.saveDoc(copy);await refreshDocs();syncTouch(copy);updateList();toast('Duplicated')}
@@ -660,11 +681,25 @@ function decodeBuffer(buf){
 }
 $('#fileDoc').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
+  const isZip=/\.zip$/i.test(f.name)||/zip/i.test(f.type||'');
+  if(isZip){
+    toast('Inspecting ZIP…');
+    let meta;try{meta=await VaultPackage.importZip(f)}catch(err){console.error(err);await modal({title:'ZIP import blocked',message:esc(err.message||'The ZIP could not be imported.'),confirmLabel:'OK',hideCancel:true});e.target.value='';return}
+    let summary='<b>'+esc(meta.entryPath)+'</b> is the entry document.<br><br>'+meta.packageFileCount+' files · '+fmtBytes(meta.uncompressedBytes)+' expanded · '+fmtBytes(meta.sizeBytes)+' stored.';
+    if(meta.conversionWarnings.length)summary+='<br><br><b>Compatibility warnings:</b><br>'+meta.conversionWarnings.map(esc).join('<br>');
+    if(!await modal({title:'Import ZIP package?',message:summary,confirmLabel:'Import package'})){e.target.value='';return}
+    if(navigator.storage&&navigator.storage.estimate)try{const q=await navigator.storage.estimate(),free=(q.quota||0)-(q.usage||0);if(q.quota&&meta.sizeBytes>free*.9)throw new Error('Not enough estimated browser storage for this package.')}catch(err){if(err.message&&/Not enough/.test(err.message)){await modal({title:'Storage check failed',message:esc(err.message),confirmLabel:'OK',hideCancel:true});e.target.value='';return}}
+    const now=Date.now(),doc=Object.assign({id:uid(),title:(extractTitle(meta.content)||f.name.replace(/\.zip$/i,'')||'Untitled').slice(0,200),wrap:false,wrapStyle:'styled',jsEnabled:State.prefs.defaultJs,selfContained:true,scrollPosition:0,favorite:false,tags:[],createdAt:now,updatedAt:now,lastOpenedAt:now},meta);
+    try{await Storage.saveDoc(doc)}catch(err){console.error(err);toast(err&&err.name==='QuotaExceededError'?'Storage full — package was not saved':'ZIP import failed');e.target.value='';return}
+    await refreshDocs();syncTouch(doc);e.target.value='';location.hash='#/view/'+encodeURIComponent(doc.id);toast('ZIP package imported');return;
+  }
   let res;
   try{res=decodeBuffer(await f.arrayBuffer())}
   catch(err){console.error(err);toast('Could not read file');e.target.value='';return}
   if(!/^utf-8$/.test(res.cs))toast('Decoded as '+res.cs);
   const text=res.text;
+  const resources=VaultPackage.analyze(text),localCount=resources.packageLocal.length+resources.rootRelative.length;
+  if(localCount&&!await modal({title:'This HTML needs companion files',message:'It references '+localCount+' local resource'+(localCount===1?'':'s')+'. Images or features may be missing if you import only the HTML file.<br><br>For a complete offline document, ZIP the HTML with its companion files and import the ZIP.',confirmLabel:'Import HTML only'})){e.target.value='';return}
   openNew({id:null,title:f.name.replace(/\.[^.]+$/,''),content:text,wrap:!looksLikeFullDoc(text),jsEnabled:State.prefs.defaultJs,createdAt:null,wrapTouched:false});
   e.target.value='';
 });
@@ -704,7 +739,7 @@ function setMode(m,initial){
   else{cp.classList.remove('on');pp.classList.add('on');buildPreview()}
 }
 function setReading(on){State.reading=on;const r=$('#viewerRoot');if(r)r.classList.toggle('reading',on)}
-function viewerMenu(){const d=State.current;sheet(d.title||'Untitled',[{label:'Reading mode',run:()=>setReading(true)},{label:'Reload preview',run:()=>{if(State.viewMode==='preview')buildPreview();else setMode('preview')}},{label:(d.jsEnabled?'Disable':'Enable')+' JavaScript',run:toggleJs},{label:'Make available offline\u2026',run:convertSelfContained},{label:'Rename',run:()=>renameDoc(d.id)},{label:'Duplicate',run:()=>duplicateDoc(d.id)},{label:'Delete',danger:true,run:()=>deleteDoc(d.id)}])}
+function viewerMenu(){const d=State.current;sheet(d.title||'Untitled',[{label:'Reading mode',run:()=>setReading(true)},{label:'Reload preview',run:()=>{if(State.viewMode==='preview')buildPreview();else setMode('preview')}},{label:(d.jsEnabled?'Disable':'Enable')+' JavaScript',run:toggleJs},{label:'Check offline resources\u2026',run:checkOfflineResources},{label:'Rename',run:()=>renameDoc(d.id)},{label:'Duplicate',run:()=>duplicateDoc(d.id)},{label:'Delete',danger:true,run:()=>deleteDoc(d.id)}])}
 async function toggleJs(){const d=State.current;d.jsEnabled=!d.jsEnabled;await Storage.patch(d.id,{jsEnabled:d.jsEnabled});toast('JavaScript '+(d.jsEnabled?'enabled':'disabled'));if(State.viewMode==='preview')buildPreview()}
 function buildPreview(){
   const d=State.current,wrap=$('#previewWrap');if(!wrap)return;
@@ -716,7 +751,9 @@ function buildPreview(){
   f.className='preview-frame';
   f.setAttribute('referrerpolicy','no-referrer');
   f.title=d.title||'Preview';
-  f.setAttribute('sandbox',d.jsEnabled?SB_JS:SB_NOJS);
+  f.setAttribute('sandbox',SB_JS);
+  const session=uid()+'_'+crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+  State.previewSession=session;State.previewErrors=new Set();State.previewWarnings=[];
   State.iframe=f;
   wrap.appendChild(f);
   if(nn.advisory&&!d.noticeDismissed&&!State.noticeDismissed[d.id]){
@@ -727,12 +764,24 @@ function buildPreview(){
     x.onclick=()=>{State.noticeDismissed[d.id]=true;d.noticeDismissed=true;Storage.patch(d.id,{noticeDismissed:true}).catch(()=>{});nb.remove()};
     nb.appendChild(x);wrap.appendChild(nb);
   }
-  requestAnimationFrame(()=>{if(State.iframe!==f||!f.isConnected)return;f.srcdoc=buildSrcdoc(d)});
+  const html=buildSrcdoc(d,session);
+  requestAnimationFrame(()=>{if(State.iframe!==f||!f.isConnected)return;f.src='preview-host.html'});
+  f._renderPayload={protocol:'html-vault-preview-v1',type:'render',session,html,allowScripts:true};
+  f.addEventListener('load',()=>{if(State.iframe===f)try{f.contentWindow.postMessage(f._renderPayload,'*')}catch(_){}} ,{once:true});
 }
 let scrollTimer=null;
 function scheduleScrollSave(){if(scrollTimer)clearTimeout(scrollTimer);scrollTimer=setTimeout(saveScrollNow,700)}
 async function saveScrollNow(){if(!State.current)return;const y=State.curScrollY||0;if((State.current.scrollPosition||0)===y)return;State.current.scrollPosition=y;await Storage.patch(State.current.id,{scrollPosition:y})}
-window.addEventListener('message',e=>{const d=e.data;if(!d||d.__hv!==1)return;if(!State.iframe||e.source!==State.iframe.contentWindow)return;if(d.type==='scroll'){State.curScrollY=d.y||0;scheduleScrollSave()}else if(d.type==='open'){openExternal(String(d.url||''))}else if(d.type==='ready'){const f=State.iframe;if(f&&State.current){const y=State.current.scrollPosition||0;try{f.contentWindow.postMessage({__hv:1,type:'restore',y},'*')}catch(_){}setTimeout(()=>{try{f.contentWindow.postMessage({__hv:1,type:'restore',y},'*')}catch(_){}},450)}}});
+window.addEventListener('message',e=>{const d=e.data,f=State.iframe;if(!d||d.protocol!=='html-vault-preview-v1'||!f||e.source!==f.contentWindow||e.origin!=='null')return;
+  if(d.type==='bootstrap-ready'){try{f.contentWindow.postMessage(f._renderPayload,'*')}catch(_){}return}
+  if(d.session!==State.previewSession)return;
+  if(d.type==='host-ready'){}
+  else if(d.type==='scroll'){State.curScrollY=d.y||0;scheduleScrollSave()}
+  else if(d.type==='open'){openExternal(String(d.url||''))}
+  else if(d.type==='asset-error'){const path=String(d.path||'unknown');if(!State.previewErrors.has(path)){State.previewErrors.add(path);toast('Missing package asset: '+path)}}
+  else if(d.type==='runtime-error'){const msg=String(d.message||'Preview error');if(!/ResizeObserver loop/i.test(msg))console.warn('Preview:',msg)}
+  else if(d.type==='ready'&&State.current){const y=State.current.scrollPosition||0,restore={protocol:'html-vault-preview-v1',session:State.previewSession,type:'restore',y};try{f.contentWindow.postMessage(restore,'*')}catch(_){}setTimeout(()=>{try{f.contentWindow.postMessage(restore,'*')}catch(_){}},450)}
+});
 window.addEventListener('pagehide',()=>saveScrollNow());
 /* FIX: a postMessage handler carries NO user activation, so Safari's popup blocker
    silently killed window.open() and every link in a preview looked dead. Try it, and
@@ -809,7 +858,7 @@ function renderSettings(){
     +syncSectionHtml()
     +'<div class="label">Install to Home Screen</div>'
     +'<div class="group"><div class="gitem" style="display:block"><ol class="steps"><li>Open in <b>Safari</b> after deploying to GitHub Pages.</li><li>Tap the <b>Share</b> icon \u2197.</li><li>Choose <b>Add to Home Screen</b>.</li><li>Launch Vault from your Home Screen.</li></ol><div class="s" style="margin-top:8px">Installed apps keep storage beyond Safari\u2019s 7-day limit.</div></div></div>'
-    +'<div class="foot">Vault v2.1 \u00B7 '+(Storage.backend==='indexeddb'?'IndexedDB':'memory (temporary)')+'<br>App version '+esc(APP_BUILD)+'</div>'
+    +'<div class="foot">Vault v2.2 \u00B7 '+(Storage.backend==='indexeddb'?'IndexedDB':'memory (temporary)')+'<br>App version '+esc(APP_BUILD)+'</div>'
     +'</div></div>';
   $('#sBack').onclick=()=>location.hash='#/';
   $('#fsSeg').addEventListener('click',e=>{const b=e.target.closest('button[data-n]');if(!b)return;const n=+b.dataset.n;applyFontScale(n);Storage.setSetting('fontScale',n);renderSettings()});
@@ -904,7 +953,7 @@ async function markBackup(){State.prefs.lastBackupAt=Date.now();await Storage.se
    transient user activation, so Safari rejected share() with NotAllowedError and the
    installed Home Screen app ALWAYS fell through to the plain-text modal. State.docs is
    already current (router refreshes before Settings), so build the JSON synchronously. */
-function backupJson(){const docs=State.docs;return JSON.stringify({app:'HTML Vault',version:1,exportedAt:Date.now(),count:docs.length,documents:docs},null,2)}
+function backupJson(){const docs=State.docs;return JSON.stringify({app:'HTML Vault',version:2,features:['packageAssets'],exportedAt:Date.now(),count:docs.length,documents:docs},null,2)}
 function exportBackup(){
   const json=backupJson(),fn='html-vault-backup-'+dateStamp()+'.json';
   const tryDL=()=>{try{const u=URL.createObjectURL(new Blob([json],{type:'application/json'}));const a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);return true}catch(e){return false}};
@@ -926,8 +975,13 @@ function exportBackup(){
 }
 function copyBackupText(){showBackupText(backupJson())}
 function showBackupText(json){const ov=$('#modalOverlay'),box=$('#modalBox');box.innerHTML='';const h=document.createElement('div');h.className='modal-title';h.textContent='Backup as text';box.appendChild(h);const p=document.createElement('div');p.className='modal-msg';p.innerHTML='Copy everything below and save as <b>backup.json</b>.';box.appendChild(p);const ta=document.createElement('textarea');ta.className='field';ta.style.cssText='height:34vh;font-family:ui-monospace,monospace;font-size:16px;white-space:pre';ta.setAttribute('readonly','');ta.value=json;box.appendChild(ta);const row=document.createElement('div');row.className='modal-actions';const cl=document.createElement('button');cl.className='btn';cl.textContent='Done';const shut=()=>{ov.classList.remove('show');activeModalDismiss=null};cl.onclick=shut;const cp=document.createElement('button');cp.className='btn btn-primary';cp.textContent='Copy';cp.onclick=async()=>{const ok=await copyText(json);if(ok)markBackup();toast(ok?'Backup copied':'Select and copy manually')};row.appendChild(cl);row.appendChild(cp);box.appendChild(row);ov.classList.add('show');activeModalDismiss=shut}
-function normalizeImported(d,existing){let id=(d.id&&typeof d.id==='string')?d.id:uid();if(existing.has(id))id=uid();const content=typeof d.content==='string'?d.content:'',now=Date.now();return{id,title:(d.title||extractTitle(content)||'Untitled').toString().slice(0,200),content,wrap:typeof d.wrap==='boolean'?d.wrap:!looksLikeFullDoc(content),wrapStyle:d.wrapStyle==='minimal'?'minimal':'styled',jsEnabled:typeof d.jsEnabled==='boolean'?d.jsEnabled:true,selfContained:!!d.selfContained,scrollPosition:+d.scrollPosition||0,favorite:!!d.favorite,tags:Array.isArray(d.tags)?d.tags:[],sizeBytes:byteLen(content),createdAt:+d.createdAt||now,updatedAt:+d.updatedAt||now,lastOpenedAt:+d.lastOpenedAt||null}}
-$('#fileBackup').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;let data;try{data=JSON.parse(await f.text())}catch(err){toast('Invalid backup file');e.target.value='';return}const docs=Array.isArray(data)?data:(data&&Array.isArray(data.documents)?data.documents:null);if(!docs){toast('Unrecognized format');e.target.value='';return}const existing=new Set(State.docs.map(d=>d.id));let n=0,fail=0;for(const raw of docs){if(!raw||typeof raw.content!=='string')continue;const doc=normalizeImported(raw,existing);try{await Storage.saveDoc(doc);existing.add(doc.id);n++}catch(err){console.error(err);fail++}}e.target.value='';await refreshDocs();syncTouch(null);toast(fail?('Imported '+n+', '+fail+' failed'):('Imported '+n+' document'+(n===1?'':'s')));router()});
+function normalizeImported(d,existing){
+  let id=(d.id&&typeof d.id==='string')?d.id:uid();if(existing.has(id))id=uid();const content=typeof d.content==='string'?d.content:'',now=Date.now();
+  const out={id,title:(d.title||extractTitle(content)||'Untitled').toString().slice(0,200),content,wrap:typeof d.wrap==='boolean'?d.wrap:!looksLikeFullDoc(content),wrapStyle:d.wrapStyle==='minimal'?'minimal':'styled',jsEnabled:typeof d.jsEnabled==='boolean'?d.jsEnabled:true,selfContained:!!d.selfContained,scrollPosition:+d.scrollPosition||0,favorite:!!d.favorite,tags:Array.isArray(d.tags)?d.tags.filter(t=>typeof t==='string').slice(0,100):[],createdAt:+d.createdAt||now,updatedAt:+d.updatedAt||now,lastOpenedAt:+d.lastOpenedAt||null};
+  if(d.packageAssets!==undefined){out.packageAssets=VaultPackage.validateManifest(d.packageAssets);out.importKind=d.importKind==='zip'?'zip':'package';out.entryPath=VaultPackage.normalizePath(String(d.entryPath||'index.html'),'',false);out.packageFileName=typeof d.packageFileName==='string'?d.packageFileName.slice(0,255):'';out.packageFileCount=Object.keys(out.packageAssets).length+1;out.archiveBytes=Math.max(0,+d.archiveBytes||0);out.uncompressedBytes=Math.max(0,+d.uncompressedBytes||0);out.conversionWarnings=Array.isArray(d.conversionWarnings)?d.conversionWarnings.filter(v=>typeof v==='string').slice(0,100):[];out.sourceBytes=byteLen(content);out.assetBytes=byteLen(JSON.stringify(out.packageAssets));out.sizeBytes=out.sourceBytes+out.assetBytes}else out.sizeBytes=byteLen(content);
+  return out;
+}
+$('#fileBackup').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;let data;try{data=JSON.parse(await f.text())}catch(err){toast('Invalid backup file');e.target.value='';return}if(data&&!Array.isArray(data)&&(+data.version||1)>2){await modal({title:'Backup is newer than this Vault',message:'This backup uses schema version '+esc(String(data.version))+'. Update Vault before restoring it.',confirmLabel:'OK',hideCancel:true});e.target.value='';return}const docs=Array.isArray(data)?data:(data&&Array.isArray(data.documents)?data.documents:null);if(!docs){toast('Unrecognized format');e.target.value='';return}const existing=new Set(State.docs.map(d=>d.id));let prepared=[];try{for(const raw of docs){if(!raw||typeof raw.content!=='string')throw new Error('A backup document is missing its original content.');const doc=normalizeImported(raw,existing);existing.add(doc.id);prepared.push(doc)}}catch(err){console.error(err);await modal({title:'Restore blocked',message:'No documents were changed.<br><br>'+esc(err.message||'The backup contains an unsafe package manifest.'),confirmLabel:'OK',hideCancel:true});e.target.value='';return}try{await Storage.saveDocsAtomic(prepared)}catch(err){console.error(err);toast('Restore failed — no documents were changed');e.target.value='';return}e.target.value='';await refreshDocs();syncTouch(null);toast('Imported '+prepared.length+' document'+(prepared.length===1?'':'s'));router()});
 async function maybeFirstRun(){if(await Storage.getSetting('firstRunSeen',false))return;await modal({title:'Welcome to Vault',message:'A private, offline library for your HTML documents.<br><br><b>Important:</b> Add this app to your Home Screen and export backups regularly.',confirmLabel:'Got it',hideCancel:true});await Storage.setSetting('firstRunSeen',true)}
 /* ── Sync ────────────────────────────────────────────────────────────────
    Vault is one inline script, so the sync modules are pulled in with a dynamic

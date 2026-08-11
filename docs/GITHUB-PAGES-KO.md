@@ -10,12 +10,12 @@ GitHub 저장소 → **Settings → Pages → Source**가 **GitHub Actions**로 
 
 ## 재배포 순서
 
-1. `Published/vault/` 안의 파일을 수정합니다.
-2. `index.html`이나 `sw.js`를 고쳤다면, `sw.js`의 `VERSION` 값을 **반드시** 올립니다. 올리지 않으면 기기에 저장된 이전 캐시가 계속 보일 수 있습니다.
+1. 이 배포본에서는 `Deliverable/vault/`의 내용 전체를 저장소 루트에 복사합니다. `.git`과 개인 백업 문서는 포함하지 마세요.
+2. 다음 업데이트에서 앱 파일을 고치면 `sw.js`의 `VERSION`과 `src/version.js`의 `APP_BUILD`를 **같은 값으로** 올립니다.
 3. 커밋하고 push합니다.
 
    ```sh
-   cd Published/vault
+   cd vault
    git add -A
    git commit -m "설명"
    git push
@@ -27,3 +27,5 @@ GitHub 저장소 → **Settings → Pages → Source**가 **GitHub Actions**로 
 ## 홈 화면 앱 업데이트 반영
 
 이미 홈 화면에 추가해 쓰고 계신 경우, 새 배포는 다음에 앱을 열 때 백그라운드에서 자동으로 받아옵니다. 즉시 반영하고 싶으면 앱을 완전히 종료(위로 스와이프)했다가 다시 여세요.
+
+업데이트 전에 **Settings → Export backup**을 실행하세요. 새 버전은 기존 IndexedDB를 그대로 사용하며 별도 데이터 초기화가 필요 없습니다. 문제가 있으면 새 파일을 이전 운영본으로 되돌리고 Service Worker 버전을 다시 증가시켜 배포한 뒤, 필요한 경우 백업을 Import backup으로 복원합니다.

@@ -7,8 +7,9 @@
 
 ## 문서 추가
 
-- 라이브러리 화면 오른쪽 위 **+** 버튼 → 파일 선택 또는 붙여넣기로 HTML/텍스트 문서를 추가합니다.
+- 라이브러리 화면 오른쪽 위 **+** 버튼 → **Import HTML or ZIP…**으로 HTML/텍스트/ZIP 문서를 추가합니다.
 - 완성된 HTML 문서는 그대로, 조각(fragment)이나 일반 텍스트는 자동으로 감싸서 보여줍니다.
+- SVG·이미지·CSS가 같은 폴더에 있는 HTML은 폴더의 파일들을 ZIP으로 묶어 가져오세요. 루트 `index.html`이 있으면 자동 선택됩니다.
 
 ## 문서 보기
 
@@ -19,7 +20,9 @@
 
 ## 오프라인에서 열기
 
-문서가 외부 CSS·폰트·이미지를 불러오는 경우, ⋯ 메뉴 → **Make available offline**을 누르면 해당 리소스를 문서 안에 통째로 넣어(inline) 오프라인에서도 그대로 보이게 만듭니다. 외부 JavaScript는 안전을 위해 인라인하지 않습니다.
+⋯ 메뉴 → **Check offline resources…**는 문서가 package-local, 원격, data/blob, script 또는 제한 기능을 사용하는지 진단합니다. ZIP 자산은 실제로 오프라인 저장되며, 원격 자산은 오프라인이라고 표시하지 않습니다. 원격 JavaScript는 기본 차단됩니다.
+
+ZIP 내부 classic JavaScript와 JavaScript가 실행 중 만든 이미지 경로는 지원합니다. ES module, Worker/Service Worker, 로컬 fetch/XHR, 다중 페이지 이동은 지원하지 않으며 영어 경고가 표시됩니다.
 
 ## 글자 크기 조절
 
@@ -35,7 +38,7 @@ Settings(설정) → **Text size**에서 1~6단계 중 고를 수 있습니다.
 
 - Settings → **Export backup**: 저장한 모든 문서를 JSON 파일로 내보냅니다. 설치된 앱에서는 공유 시트로, Safari에서는 파일 다운로드로 저장됩니다.
 - Settings → **Copy backup as text**: 파일 저장이 어려운 상황에서 백업 내용을 텍스트로 복사해 메모 앱 등에 붙여넣을 수 있습니다.
-- Settings → **Import backup**: JSON 백업 파일을 불러와 기존 문서와 병합합니다. 같은 id는 덮어쓰지 않고 새 항목으로 추가됩니다.
+- Settings → **Import backup**: JSON 백업 파일을 불러와 기존 문서와 병합합니다. schema v1과 v2를 지원하며, v2는 ZIP 자산과 패키지 메타데이터도 복원합니다. 위험하거나 손상된 manifest가 하나라도 있으면 아무 문서도 저장하지 않습니다.
 - 백업 파일에는 저장한 HTML 원문이 그대로 들어 있으므로, 공개 저장소에는 올리지 말고 iCloud Drive 등 본인만 접근하는 곳에 보관하세요.
 
 ## 저장 공간 관리

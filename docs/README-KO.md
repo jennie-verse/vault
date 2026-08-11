@@ -6,6 +6,7 @@
 
 - 문서는 IndexedDB에 로컬 저장되며 저장소에 자동 업로드되지 않습니다.
 - 저장한 HTML은 샌드박스된 미리보기에서 열립니다. JavaScript는 문서별로 직접 허용할 수 있습니다.
+- `.zip` 웹 패키지는 원본 HTML과 동반 자산을 함께 보존해 오프라인에서도 표시합니다.
 - 서비스 워커가 앱 화면과 필요한 라이브러리·글꼴·아이콘을 오프라인 캐시합니다.
 - 모든 경로가 상대 경로라 GitHub Pages의 프로젝트 하위 주소에서 동작합니다.
 - 단일 라이트 테마는 베이비핑크를 중심으로 하늘색·라일락을 보조색으로 쓰며, UI 글꼴은 자체 포함된 Lexend와 Verdana 계열입니다.
@@ -23,13 +24,21 @@
 | `localStorage` / `sessionStorage` | 메모리 기반 셰임(shim)을 `<head>` 최상단에 주입. 문서를 벗어나면 초기화됩니다. |
 | `document.cookie` | 메모리 기반 셰임 |
 | `alert` / `confirm` / `prompt` | `allow-modals` |
-| `<form>` 제출 | `allow-forms` |
+| `<form>` 제출 | preview CSP의 `form-action 'none'`으로 차단 |
 | 다운로드 (`<a download>`, Blob URL) | `allow-downloads` |
 | `window.open` | `allow-popups` |
 | 외부 링크 | 부모 앱이 가로채 새 탭으로 엽니다. 팝업이 차단되면 확인 시트로 대체됩니다. |
 | `indexedDB` | 사용 불가로 감지되면 `undefined`로 노출되어 기능 감지가 정상 실패합니다. |
 
-JavaScript를 끈 문서는 스크립트와 링크가 모두 동작하지 않습니다.
+JavaScript를 끈 문서는 사용자 스크립트를 제거하지만 내부 `#fragment` 링크는 Vault 처리기로 계속 동작합니다.
+
+## ZIP 웹 패키지
+
+상대경로 SVG·이미지·CSS·JavaScript가 있는 HTML은 폴더 내용을 ZIP으로 묶어 가져오세요. Vault는 원본 진입 HTML을 `content`에 그대로 두고, 동반 파일을 `packageAssets`에 한 번씩 저장합니다. 미리보기에서만 임시 자체 포함 문서를 만들기 때문에 Code 보기에는 원본이 보입니다.
+
+보안 제한: 압축 10 MB, 해제 25 MB, 파일당 10 MB, 500개, 압축률 100:1. 경로 탈출, 절대경로, 암호화, symlink, 중복·대소문자 충돌, CRC 오류는 전체 가져오기를 중단합니다.
+
+지원: 정적/동적 이미지 경로, CSS `url()`/`@import`, 다운로드 링크, ZIP 내부 classic script. 비지원: ES module/import graph, Worker/Service Worker, 로컬 fetch/XHR, multi-page 이동, object/embed, 원격 JavaScript 실행.
 
 ## 문서 읽기
 
@@ -68,4 +77,4 @@ JavaScript를 끈 문서는 스크립트와 링크가 모두 동작하지 않습
 
 ### CSP에 대해
 
-`index.html`에 CSP를 넣었지만 **자원(이미지·글꼴·스타일)은 일부러 열어 두었습니다.** 저장 문서는 `iframe.srcdoc`으로 그려지고 **부모 페이지의 CSP를 그대로 물려받기** 때문에, 자원을 `'self'`로 잠그면 외부 이미지나 웹폰트를 쓰는 저장 문서가 깨집니다. 잠근 것은 `connect-src`(통신)와 `object-src`·`base-uri`·`form-action`입니다.
+Vault 앱 CSP와 `preview-host.html` 정책을 분리했습니다. preview host는 `connect-src 'none'`, `object-src 'none'`, `base-uri 'none'`, `form-action 'none'`이며 data/blob package asset만 허용합니다. 두 단계 iframe 모두 `allow-same-origin`이 없고, 메시지는 source·opaque origin·문서별 session nonce를 검사합니다.

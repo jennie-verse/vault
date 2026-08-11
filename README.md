@@ -6,6 +6,7 @@
 
 - 문서는 IndexedDB에 로컬 저장되며 저장소에 자동 업로드되지 않습니다.
 - 저장한 HTML은 샌드박스된 미리보기에서 열립니다. JavaScript는 문서별로 직접 허용할 수 있습니다.
+- 단일 `.html`/`.htm`과 여러 자산을 묶은 `.zip`을 가져올 수 있습니다. ZIP의 원본 HTML은 그대로 보존하고 SVG·이미지·CSS·classic JavaScript는 별도 자산 manifest로 저장합니다.
 - 서비스 워커가 앱 화면과 필요한 라이브러리·글꼴·아이콘을 오프라인 캐시합니다.
 - 모든 경로가 상대 경로라 GitHub Pages의 프로젝트 하위 주소에서 동작합니다.
 - 단일 라이트 테마는 베이비핑크를 중심으로 하늘색·라일락을 보조색으로 쓰며, UI 글꼴은 자체 포함된 Lexend와 Verdana 계열입니다.
@@ -22,13 +23,22 @@
 | `localStorage` / `sessionStorage` | 메모리 기반 셰임(shim)을 `<head>` 최상단에 주입. 문서를 벗어나면 초기화됩니다. |
 | `document.cookie` | 메모리 기반 셰임 |
 | `alert` / `confirm` / `prompt` | `allow-modals` |
-| `<form>` 제출 | `allow-forms` |
+| `<form>` 제출 | preview CSP의 `form-action 'none'`으로 차단 |
 | 다운로드 (`<a download>`, Blob URL) | `allow-downloads` |
 | `window.open` | `allow-popups` |
 | 외부 링크 | 부모 앱이 가로채 새 탭으로 엽니다. 팝업이 차단되면 확인 시트로 대체됩니다. |
 | `indexedDB` | 사용 불가로 감지되면 `undefined`로 노출되어 기능 감지가 정상 실패합니다. |
 
-JavaScript를 끈 문서는 스크립트와 링크가 모두 동작하지 않습니다.
+JavaScript를 끄면 사용자 스크립트와 이벤트 속성은 제거되지만, Vault의 격리된 fragment 처리기는 유지되어 `#section` 링크가 같은 문서 안에서 동작합니다.
+
+## HTML·ZIP 호환성
+
+- ZIP 루트의 `index.html`을 우선 진입점으로 사용합니다. 루트 `index.html`이 없고 HTML이 여러 개면 모호한 가져오기를 중단하고 파일 목록을 보여줍니다.
+- ZIP 제한은 압축 파일 10 MB, 압축 해제 합계 25 MB, 단일 파일 10 MB, 500개 파일, 압축률 100:1입니다.
+- ZIP Slip, 절대경로, 중복·대소문자 충돌, 암호화 ZIP, symlink, CRC 오류를 가져오기 전에 차단합니다.
+- 정적 `src`/`href`/CSS URL뿐 아니라 JavaScript가 `innerHTML`, `setAttribute`, `element.src`로 만든 package-local 경로도 미리보기 시 해결합니다.
+- package-local classic script는 실행 순서를 유지해 inline합니다. ES module/import graph, Worker·Service Worker, 로컬 `fetch`/XHR, 다중 HTML 페이지 이동은 지원하지 않습니다.
+- 원격 JavaScript는 기본 차단됩니다. Vault 앱 자체 CSP는 완화하지 않습니다.
 
 ## 문서 읽기
 
@@ -41,8 +51,8 @@ JavaScript를 끈 문서는 스크립트와 링크가 모두 동작하지 않습
 
 이 저장소에는 `.github/workflows/deploy.yml`이 포함되어 있습니다. GitHub 저장소의 **Settings → Pages → Source**를 **GitHub Actions**로 선택하면 `main` 브랜치에 올릴 때 자동 배포됩니다.
 
-`sw.js`의 `VERSION` 값은 **배포할 때마다 반드시 올려야** 캐시가 갱신됩니다. 앱 화면(navigation) 요청은 network-first이므로 새 버전이 첫 실행에서 바로 반영됩니다.
+`sw.js`의 `VERSION`과 `src/version.js`의 `APP_BUILD`는 항상 함께 올려야 합니다. 현재 배포 빌드는 `2026.08.10-compat1`입니다.
 
 ## 개인정보와 백업
 
-앱에 저장한 문서는 현재 기기의 브라우저 저장공간에만 있습니다. 저장소를 지우거나 iOS가 저장공간을 정리하면 사라질 수 있으므로 **Settings → Export backup**으로 정기적으로 백업하세요. 백업 파일에는 저장한 HTML 원문이 들어 있으므로 Public Repository에는 올리지 마세요.
+앱에 저장한 문서는 현재 기기의 브라우저 저장공간에만 있습니다. **Settings → Export backup**의 schema v2 백업에는 원본 HTML, package assets, 진입 경로와 호환성 메타데이터가 함께 들어갑니다. 개인 백업은 Public Repository에 올리지 마세요.
