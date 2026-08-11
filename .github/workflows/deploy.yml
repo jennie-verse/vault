@@ -17,16 +17,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  test-and-deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - run: npm run test:syntax
+      - name: Stage allowlisted Pages artifact
+        run: |
+          mkdir public
+          cp index.html preview-host.html manifest.webmanifest sw.js apple-touch-icon.png README.md .nojekyll public/
+          cp -R icons src vendor licenses docs public/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: public
       - id: deployment
         uses: actions/deploy-pages@v4
