@@ -38,7 +38,7 @@ JavaScript를 끈 문서는 사용자 스크립트를 제거하지만 내부 `#f
 
 보안 제한: 압축 10 MB, 해제 25 MB, 파일당 10 MB, 500개, 압축률 100:1. 경로 탈출, 절대경로, 암호화, symlink, 중복·대소문자 충돌, CRC 오류는 전체 가져오기를 중단합니다.
 
-지원: 정적/동적 이미지 경로, CSS `url()`/`@import`, 다운로드 링크, ZIP 내부 classic script. 비지원: ES module/import graph, Worker/Service Worker, 로컬 fetch/XHR, multi-page 이동, object/embed, 원격 JavaScript 실행.
+지원: 정적/동적 이미지 경로, CSS `url()`/`@import`, 다운로드 링크, ZIP 내부 classic script. 비지원: ES module/import graph, Worker/Service Worker, 로컬 fetch/XHR, multi-page 이동, object/embed, 원격 JavaScript 실행. 원격 script는 style/media와 별도로 고위험 분류하며 차단 dependency와 runtime error를 session 한정 `Preview issues`에 표시합니다.
 
 ## 문서 읽기
 
@@ -49,7 +49,7 @@ JavaScript를 끈 문서는 사용자 스크립트를 제거하지만 내부 `#f
 
 ## 배포
 
-이 저장소에는 `.github/workflows/deploy.yml`이 포함되어 있습니다. GitHub 저장소의 **Settings → Pages → Source**를 **GitHub Actions**로 선택하면 `main` 브랜치에 올릴 때 자동 배포됩니다.
+이 저장소에는 `.github/workflows/deploy.yml`이 포함되어 있습니다. GitHub 저장소의 **Settings → Pages → Source**를 **GitHub Actions**로 선택하면 `main` push에서 저장소 소유 테스트를 실행한 뒤 allowlist artifact만 자동 배포합니다. `tests`, fixture, `node_modules`, package metadata는 Pages에 포함하지 않습니다.
 
 `sw.js`의 `VERSION` 값은 **배포할 때마다 반드시 올려야** 캐시가 갱신됩니다. 앱 화면(navigation) 요청은 network-first이므로 새 버전이 첫 실행에서 바로 반영됩니다.
 

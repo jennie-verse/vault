@@ -1,5 +1,5 @@
 // sw.js — cache-first app shell, versioned
-const VERSION = '2026.08.10-compat1';   // must match APP_BUILD in src/version.js
+const VERSION = '2026.08.10-compat2';   // must match APP_BUILD in src/version.js
 const CACHE   = 'html-vault-' + VERSION;
 
 // All same-origin. Every file here must exist or install() fails.

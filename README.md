@@ -7,6 +7,7 @@
 - 문서는 IndexedDB에 로컬 저장되며 저장소에 자동 업로드되지 않습니다.
 - 저장한 HTML은 샌드박스된 미리보기에서 열립니다. JavaScript는 문서별로 직접 허용할 수 있습니다.
 - 단일 `.html`/`.htm`과 여러 자산을 묶은 `.zip`을 가져올 수 있습니다. ZIP의 원본 HTML은 그대로 보존하고 SVG·이미지·CSS·classic JavaScript는 별도 자산 manifest로 저장합니다.
+- 원격 JavaScript 의존성은 import 전에 고위험으로 안내하고, preview에서는 차단 dependency·resource·runtime error를 `Preview issues`로 표시합니다.
 - 서비스 워커가 앱 화면과 필요한 라이브러리·글꼴·아이콘을 오프라인 캐시합니다.
 - 모든 경로가 상대 경로라 GitHub Pages의 프로젝트 하위 주소에서 동작합니다.
 - 단일 라이트 테마는 베이비핑크를 중심으로 하늘색·라일락을 보조색으로 쓰며, UI 글꼴은 자체 포함된 Lexend와 Verdana 계열입니다.
@@ -49,9 +50,9 @@ JavaScript를 끄면 사용자 스크립트와 이벤트 속성은 제거되지�
 
 ## 배포
 
-이 저장소에는 `.github/workflows/deploy.yml`이 포함되어 있습니다. GitHub 저장소의 **Settings → Pages → Source**를 **GitHub Actions**로 선택하면 `main` 브랜치에 올릴 때 자동 배포됩니다.
+이 저장소에는 `.github/workflows/deploy.yml`이 포함되어 있습니다. GitHub 저장소의 **Settings → Pages → Source**를 **GitHub Actions**로 선택하면 `main` push에서 테스트 후 allowlist artifact만 자동 배포됩니다.
 
-`sw.js`의 `VERSION`과 `src/version.js`의 `APP_BUILD`는 항상 함께 올려야 합니다. 현재 배포 빌드는 `2026.08.10-compat1`입니다.
+`sw.js`의 `VERSION`과 `src/version.js`의 `APP_BUILD`는 항상 함께 올려야 합니다. 현재 release 빌드는 `2026.08.10-compat2`입니다.
 
 ## 개인정보와 백업
 

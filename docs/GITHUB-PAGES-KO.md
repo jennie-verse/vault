@@ -10,9 +10,10 @@ GitHub 저장소 → **Settings → Pages → Source**가 **GitHub Actions**로 
 
 ## 재배포 순서
 
-1. 이 배포본에서는 `Deliverable/vault/`의 내용 전체를 저장소 루트에 복사합니다. `.git`과 개인 백업 문서는 포함하지 마세요.
+1. 로컬 `WebApp/Published/vault/` Git 작업 트리에서 앱 파일을 수정합니다. 개인 백업이나 `WebApp/Tests/vault/`의 테스트 fixture는 포함하지 마세요.
 2. 다음 업데이트에서 앱 파일을 고치면 `sw.js`의 `VERSION`과 `src/version.js`의 `APP_BUILD`를 **같은 값으로** 올립니다.
 3. 커밋하고 push합니다.
+4. workflow의 test·syntax 단계가 통과한 뒤 allowlist `public/` artifact만 배포되는지 확인합니다. `tests`, fixture, `node_modules`, package metadata는 배포하지 않습니다.
 
    ```sh
    cd vault

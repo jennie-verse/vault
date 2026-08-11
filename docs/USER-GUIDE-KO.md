@@ -24,6 +24,10 @@
 
 ZIP 내부 classic JavaScript와 JavaScript가 실행 중 만든 이미지 경로는 지원합니다. ES module, Worker/Service Worker, 로컬 fetch/XHR, 다중 페이지 이동은 지원하지 않으며 영어 경고가 표시됩니다.
 
+원격 JavaScript가 필요한 단일 HTML은 가져오기 전에 **Required JavaScript will be blocked**로 구분됩니다. 저장한 뒤에는 **Required JavaScript is blocked** banner와 **Preview issues**에서 차단된 script/style/media 및 session runtime error를 확인할 수 있습니다. 오류 내용은 300자로 제한되고 문서나 sync metadata에는 저장되지 않습니다.
+
+작동 가능한 패키지는 새 폴더의 루트에 `index.html`을 두고, 고정 버전 script를 `vendor/` 같은 하위 폴더에 넣은 뒤 `<script src>`를 상대경로로 바꾸어 만듭니다. 라이선스도 포함하고 폴더 내용만 ZIP으로 묶어 가져오세요. Vault는 package-local classic JavaScript만 private sandbox에서 실행합니다.
+
 ## 글자 크기 조절
 
 Settings(설정) → **Text size**에서 1~6단계 중 고를 수 있습니다.

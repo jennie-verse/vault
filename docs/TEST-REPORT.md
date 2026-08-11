@@ -1,10 +1,25 @@
-# Vault v2.2 테스트 보고서
+# Vault v2.3 viewer compatibility 테스트 보고서
 
 - 테스트 일자: 2026-08-10
-- 빌드: `2026.08.10-compat1`
-- 테스트 URL: `http://127.0.0.1:8765/Deliverable/vault/`
+- 빌드: `2026.08.10-compat2`
+- 테스트 URL: `http://127.0.0.1:4173/Published/vault/`
 - 브라우저: Codex In-app Browser
-- 기준 파일: `WebApp/mindmap/index.html`, `WebApp/mindmap.zip`
+- 기준 파일: `WebApp/mindmap.zip` (`693b2024984d1e992a152b86604fa7e909a9ce8e76d489f7fccbc9f11598fb97`), Civics 원본 (`08fc31e72559a71f2d2503f9c9f9a353015bf0240542999a68ef03998a6bcdee`)
+
+## 2026-08-10 compat2 현재 재실행
+
+| 검사 | 결과 |
+|---|---|
+| `npm test`, `npm run test:syntax` | PASS |
+| 저장소 소유 package browser harness | PASS — 9 security fixtures, classic script, resource 분류, dynamic rewrite |
+| 원격 script 진단 | PASS — import 전 고위험 안내, 기능 중단 banner, 안전한 `Preview issues` |
+| runtime error 경계 | PASS — 최대 300자, session-only, sync metadata 저장 없음 |
+| Civics offline ZIP | PASS — 7 allowlisted files, graph, 6 filters, active/aria state, 교차 연결선, pan/zoom controls |
+| Civics Preview issues | PASS — 0 |
+| Civics SVG export | PARTIAL — 비어 있지 않은 6,264자 SVG DOM과 export handler 확인; nested data-URL download event는 Browser에서 관찰되지 않음 |
+| CSP/sandbox | PASS — 원격 origin 추가 없음, `allow-same-origin` 없음, preview `connect-src 'none'` |
+
+과거 compat1 결과는 아래 역사 기준으로 유지하되 현재 결과처럼 간주하지 않습니다. 기존 사용자가 수정해 둔 `WebApp/Tests/vault/` 경로 설명은 보존했고, 추가로 저장소 자체 `tests/`를 만들었습니다. workflow는 test 이후 allowlist artifact만 올려 tests/fixture/package metadata를 배포하지 않습니다.
 
 ## 결과 요약
 
@@ -19,7 +34,7 @@
 | backup schema v2 | PASS — `features: ["packageAssets"]`, 자산 11개 |
 | 삭제 후 복원 | PASS — 원본 HTML·manifest·entry path 복원 |
 | Service Worker 오프라인 재실행 | PASS — 서버 중단 뒤 카드 11, 이미지 11 |
-| GitHub Pages 하위 경로 | PASS — `/Deliverable/vault/`에서 모든 필수 shell 자산 로드 |
+| 과거 GitHub Pages 하위 경로 | HISTORICAL PASS — compat1 당시 `/Deliverable/vault/`; 현재 운영은 `Published/vault/` 작업 트리와 `/vault/` Pages URL |
 | console error/warn | PASS — 관련 오류 0 |
 
 ## 정상 비교 기준
@@ -32,7 +47,7 @@ Vault ZIP 미리보기에서도 지연 로딩 대상을 순서대로 viewport에
 
 ## 보안 fixture
 
-배포 폴더 밖의 `Deliverable/vault-tests/`에서 개인정보 없는 최소 fixture를 실행했습니다.
+배포 폴더 밖의 `WebApp/Tests/vault/`에서 개인정보 없는 최소 fixture를 실행했습니다.
 
 | fixture | 예상/실제 |
 |---|---|
@@ -56,8 +71,8 @@ Vault ZIP 미리보기에서도 지연 로딩 대상을 순서대로 viewport에
 
 ## PWA
 
-- `sw.js VERSION`: `2026.08.10-compat1`
-- `src/version.js APP_BUILD`: `2026.08.10-compat1`
+- `sw.js VERSION`: `2026.08.10-compat2`
+- `src/version.js APP_BUILD`: `2026.08.10-compat2`
 - 신규 cache asset: `src/package.js`, `preview-host.html`
 - 서버 중단 후 navigation fallback과 IndexedDB package preview: PASS
 - manifest JSON 및 상대경로: PASS
