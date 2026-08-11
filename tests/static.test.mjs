@@ -18,6 +18,8 @@ assert.match(index, /Preview issues/, "runtime and resource issues need an on-sc
 assert.match(index, /String\(d\.message\|\|'Preview error'\)\.slice\(0,300\)/, "runtime messages must be length-limited");
 assert.match(index, /window\.addEventListener\(\"unhandledrejection\"/, "single HTML previews must report promise failures");
 assert.match(index, /inner=injectHead\(inner,previewInstrument\(session\)\)/, "single HTML diagnostics must run before head scripts");
+assert.match(index, /ep\.onclick=\(\)=>openNew\(\)/, "the empty-library Paste HTML button must not pass its click event as a draft");
+assert.match(index, /typeof d\.title==='string'\?d\.title:''/, "draft save must tolerate a missing optional title");
 assert.match(index, /version:2,features:\['packageAssets'\]/, "backup v2 must preserve package assets");
 assert.match(index, /\(\+data\.version\|\|1\)>2/, "future backup versions must be blocked");
 assert.ok(existsSync(join(root, "tests/package.test.html")));

@@ -622,7 +622,7 @@ function updateList(){
   else{html+='<div class="list">';for(const d of arr){const sub=(State.prefs.sort==='modified'?'Modified '+fmtDate(d.updatedAt):State.prefs.sort==='created'?'Created '+fmtDate(d.createdAt):'Opened '+fmtDate(d.lastOpenedAt))+' \u00B7 '+fmtBytes(d.sizeBytes||byteLen(d.content));html+='<div class="row"><div class="row-main" data-id="'+esc(d.id)+'"><div class="row-title">'+esc(d.title||'Untitled')+'</div><div class="row-sub">'+esc(sub)+'</div></div><button class="row-more" data-id="'+esc(d.id)+'" aria-label="Actions">'+ICON.dots+'</button></div>'}html+='</div>'}
   lb.innerHTML=html;
   const bx=$('#bannerX');if(bx)bx.onclick=()=>{State.bannerDismissed=true;Storage.setSetting('bannerDismissed',true);updateList()};
-  const ep=$('#emPaste');if(ep)ep.onclick=openNew;
+  const ep=$('#emPaste');if(ep)ep.onclick=()=>openNew();
   const ei=$('#emImport');if(ei)ei.onclick=()=>$('#fileDoc').click();
 }
 function newSheet(){sheet('Add document',[{label:'Paste HTML',run:openNew},{label:'Import HTML or ZIP…',run:()=>$('#fileDoc').click()}])}
@@ -667,7 +667,7 @@ function renderNew(){
   $('#importInstead').onclick=()=>$('#fileDoc').click();
   upd();
 }
-async function saveDraft(){const d=State.draft;if(!d||!d.content.trim()){toast('Nothing to save');return}const now=Date.now();const doc={id:d.id||uid(),title:(d.title.trim()||extractTitle(d.content)||'Untitled').slice(0,200),content:d.content,wrap:!!d.wrap,wrapStyle:d.wrapStyle==='minimal'?'minimal':'styled',jsEnabled:!!d.jsEnabled,selfContained:!!d.selfContained,scrollPosition:0,favorite:false,tags:[],sizeBytes:byteLen(d.content),createdAt:d.createdAt||now,updatedAt:now,lastOpenedAt:now};try{await Storage.saveDoc(doc)}catch(err){console.error(err);toast(err&&err.name==='QuotaExceededError'?'Storage full \u2014 export a backup and remove old documents':'Save failed');return}await refreshDocs();syncTouch(doc);State.draft=null;location.hash='#/view/'+encodeURIComponent(doc.id);toast('Saved')}
+async function saveDraft(){const d=State.draft;if(!d||typeof d.content!=='string'||!d.content.trim()){toast('Nothing to save');return}const now=Date.now(),draftTitle=typeof d.title==='string'?d.title:'';const doc={id:d.id||uid(),title:(draftTitle.trim()||extractTitle(d.content)||'Untitled').slice(0,200),content:d.content,wrap:!!d.wrap,wrapStyle:d.wrapStyle==='minimal'?'minimal':'styled',jsEnabled:!!d.jsEnabled,selfContained:!!d.selfContained,scrollPosition:0,favorite:false,tags:[],sizeBytes:byteLen(d.content),createdAt:d.createdAt||now,updatedAt:now,lastOpenedAt:now};try{await Storage.saveDoc(doc)}catch(err){console.error(err);toast(err&&err.name==='QuotaExceededError'?'Storage full \u2014 export a backup and remove old documents':'Save failed');return}await refreshDocs();syncTouch(doc);State.draft=null;location.hash='#/view/'+encodeURIComponent(doc.id);toast('Saved')}
 /* FIX: file.text() always decodes as UTF-8, so EUC-KR / CP949 / UTF-16 files came in
    as mojibake with no warning. Sniff the BOM and any declared charset instead. */
 function decodeBuffer(buf){
