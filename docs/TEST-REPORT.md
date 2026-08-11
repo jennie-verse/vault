@@ -1,16 +1,17 @@
 # Vault v2.3 viewer compatibility 테스트 보고서
 
 - 테스트 일자: 2026-08-10
-- 빌드: `2026.08.10-compat2`
+- 빌드: `2026.08.10-compat3`
 - 테스트 URL: `http://127.0.0.1:4173/Published/vault/`
 - 브라우저: Codex In-app Browser
 - 기준 파일: `WebApp/mindmap.zip` (`693b2024984d1e992a152b86604fa7e909a9ce8e76d489f7fccbc9f11598fb97`), Civics 원본 (`08fc31e72559a71f2d2503f9c9f9a353015bf0240542999a68ef03998a6bcdee`)
 
-## 2026-08-10 compat2 현재 재실행
+## 2026-08-10 compat3 현재 재실행
 
 | 검사 | 결과 |
 |---|---|
 | `npm test`, `npm run test:syntax` | PASS |
+| 빈 Library `Paste HTML` → Save | PASS — 클릭 이벤트가 draft로 유입되던 `title.trim()` 예외 수정·브라우저 재현 통과 |
 | 저장소 소유 package browser harness | PASS — 9 security fixtures, classic script, resource 분류, dynamic rewrite |
 | 원격 script 진단 | PASS — import 전 고위험 안내, 기능 중단 banner, 안전한 `Preview issues` |
 | runtime error 경계 | PASS — 최대 300자, session-only, sync metadata 저장 없음 |
@@ -21,6 +22,7 @@
 | Code 보기 | PASS — `vendor/mermaid-10.6.1.min.js`, `vendor/svg-pan-zoom-3.6.1.min.js` 상대경로 보존, data script 없음 |
 | offline app/package reload | PASS — server 종료 후 app shell 및 Civics graph·6 filters·Preview issues 0 유지 |
 | backup v2 actual export/restore | PARTIAL — 2 package document의 7.6 MB export UI 실행; in-app Browser가 download event/대용량 clipboard를 전달하지 않아 이번 session의 delete→restore는 완료 증거 없음 |
+| compat3 offline reload | PASS — 서버 종료 후 app shell, Settings build, synthetic document 보존 |
 
 ## 실배포
 
@@ -29,7 +31,7 @@
 - Pages: `https://jennie-verse.github.io/vault/`
 - live `index.html`, `src/package.js`, `src/version.js`, `sw.js`, `preview-host.html` SHA-256이 local release와 각각 일치
 - `/tests/package.test.html`, `/package.json`: HTTP 404 — 개발 artifact 제외 확인
-- live Settings build: `2026.08.10-compat2`; page identity·첫 화면·Settings interaction·console health PASS
+- compat3 local Settings build: `2026.08.10-compat3`; live 결과는 최종 Actions 배포 뒤 갱신
 
 과거 compat1 결과는 아래 역사 기준으로 유지하되 현재 결과처럼 간주하지 않습니다. 기존 사용자가 수정해 둔 `WebApp/Tests/vault/` 경로 설명은 보존했고, 추가로 저장소 자체 `tests/`를 만들었습니다. workflow는 test 이후 allowlist artifact만 올려 tests/fixture/package metadata를 배포하지 않습니다.
 
@@ -83,8 +85,8 @@ Vault ZIP 미리보기에서도 지연 로딩 대상을 순서대로 viewport에
 
 ## PWA
 
-- `sw.js VERSION`: `2026.08.10-compat2`
-- `src/version.js APP_BUILD`: `2026.08.10-compat2`
+- `sw.js VERSION`: `2026.08.10-compat3`
+- `src/version.js APP_BUILD`: `2026.08.10-compat3`
 - 신규 cache asset: `src/package.js`, `preview-host.html`
 - 서버 중단 후 navigation fallback과 IndexedDB package preview: PASS
 - manifest JSON 및 상대경로: PASS
