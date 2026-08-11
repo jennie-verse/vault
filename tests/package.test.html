@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Vault package tests</title><script src="../src/package.js"></script></head>
+<body><h1>Vault package tests</h1><pre id="results">Running…</pre>
+<script>
+(async function(){
+  const expected={
+    'zip-slip.zip':'UNSAFE_PATH','absolute-path.zip':'UNSAFE_PATH','duplicate.zip':'DUPLICATE_PATH','case-collision.zip':'CASE_COLLISION','encrypted.zip':'ENCRYPTED_ZIP',
+    'oversized.zip':'ZIP_LIMIT','ambiguous-entry.zip':'AMBIGUOUS_ENTRY','no-entry.zip':'NO_ENTRY_HTML','corrupt.zip':'CORRUPT_ZIP'
+  };
+  const security=[];
+  for(const [name,code] of Object.entries(expected)){
+    try{const b=await fetch('fixtures/'+name).then(r=>r.arrayBuffer());await VaultPackage.importZip(new File([b],name,{type:'application/zip'}));security.push({name,pass:false,expected:code,actual:'allowed'})}
+    catch(e){security.push({name,pass:e.code===code,expected:code,actual:e.code,message:e.message})}
+  }
+  const classicBuffer=await fetch('fixtures/classic-script.zip').then(r=>r.arrayBuffer());
+  const classic=await VaultPackage.importZip(new File([classicBuffer],'classic-script.zip',{type:'application/zip'}));
+  const materialized=VaultPackage.materialize(Object.assign({jsEnabled:true},classic),'test-session','');
+  const classicInline=/classic script ran/.test(materialized.html)&&!/<script[^>]+src=/i.test(materialized.html);
+  const remote=VaultPackage.analyze('<script src="https://example.invalid/app.js"><\/script><link rel="stylesheet" href="https://example.invalid/app.css"><img src="https://example.invalid/a.png">');
+  const classified=remote.remoteScripts.length===1&&remote.remoteStyles.length===1&&remote.remoteMedia.length===1;
+  const dynamicRewrite=/Object\.defineProperty\(Element\.prototype,"innerHTML"/.test(materialized.html);
+  const result={pass:security.every(x=>x.pass)&&classicInline&&classified&&dynamicRewrite,security,classicInline,classified,dynamicRewrite};
+  document.getElementById('results').textContent=JSON.stringify(result,null,2);document.body.dataset.pass=String(result.pass);
+})().catch(e=>{document.getElementById('results').textContent=JSON.stringify({pass:false,error:e.message,stack:e.stack},null,2);document.body.dataset.pass='false'});
+</script></body></html>

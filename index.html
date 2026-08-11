@@ -122,7 +122,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .banner{display:flex;gap:10px;align-items:flex-start;background:var(--warn-bg);border:.5px solid var(--warn-line);color:var(--warn-text);border-radius:12px;padding:11px 12px;margin:14px 16px 4px;font-size:calc(13.5px * var(--scale));line-height:1.45}
 .banner svg{width:20px;height:20px;flex:0 0 auto}
 .banner b{font-weight:700}
-.banner .x{margin-left:auto;border:0;background:transparent;color:var(--warn-text);font-size:calc(18px * var(--scale));opacity:.7;flex:0 0 auto;width:24px;height:24px;border-radius:50%}
+.banner .x{margin-left:auto;border:0;background:transparent;color:var(--warn-text);font-size:calc(18px * var(--scale));opacity:.7;flex:0 0 auto;width:44px;height:44px;border-radius:50%}
+.banner a{display:inline-flex;align-items:center;min-height:44px;padding:0 3px;vertical-align:middle}
 .membar{background:var(--danger);color:#fff;font-size:calc(12.5px * var(--scale));text-align:center;padding:6px 12px;line-height:1.35}
 /* ── Buttons / Fields ─────────────────────────────────── */
 .btn{border:0;border-radius:11px;padding:11px 16px;font-size:calc(16px * var(--scale));font-weight:600;background:rgba(120,120,128,.16);color:var(--accent)}
@@ -168,7 +169,15 @@ textarea.field{min-height:46vh;resize:vertical;font:14px/1.5 ui-monospace,SFMono
 #previewWrap{position:absolute;inset:0;overflow:hidden;display:flex;flex-direction:column}
 .preview-frame{flex:1 1 0;width:100%;height:auto;min-height:0;border:0;display:block}
 .pv-note{position:relative;flex:0 0 auto;order:-1;display:flex;align-items:flex-start;gap:8px;background:var(--warn-bg);color:var(--warn-text);border-bottom:.5px solid var(--warn-line);padding:8px 12px;font-size:calc(12.5px * var(--scale));line-height:1.4}
-.pv-note .pv-x{margin-left:auto;border:0;background:transparent;color:inherit;font-size:calc(17px * var(--scale));line-height:1;opacity:.7;flex:0 0 auto;width:22px;height:22px;cursor:pointer}
+.pv-note .pv-x{margin-left:auto;border:0;background:transparent;color:inherit;font-size:calc(17px * var(--scale));line-height:1;opacity:.7;flex:0 0 auto;width:44px;height:44px;cursor:pointer}
+.pv-note.critical{background:#fff0f2;color:#7c1733;border-color:#dc7893;display:grid;grid-template-columns:1fr auto;align-items:center}
+.pv-note.critical strong{display:block;font-size:calc(13.5px * var(--scale));margin-bottom:2px}
+.pv-note.critical button{min-height:44px;border:1px solid #c85878;border-radius:9px;background:#fff;color:#7c1733;padding:7px 11px;font-weight:700}
+.preview-issues{position:relative;flex:0 0 auto;order:-1;border-bottom:.5px solid var(--warn-line);background:var(--card);font-size:calc(12.5px * var(--scale))}
+.preview-issues summary{min-height:44px;display:flex;align-items:center;padding:8px 12px;cursor:pointer;font-weight:700;color:var(--text2)}
+.preview-issues[data-severity="error"] summary{color:#8b1638}
+.preview-issues ul{margin:0;padding:0 16px 12px 32px;max-height:150px;overflow:auto;color:var(--text2)}
+.preview-issues li{padding:3px 0;overflow-wrap:anywhere}
 .pv-note.blocking{flex:1 1 auto;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:0;background:var(--card);color:var(--text2);border:0;padding:28px 24px;font-size:calc(14px * var(--scale))}
 #viewerRoot.reading .vbar{display:none}
 .reading-exit{display:none;position:absolute;
@@ -351,7 +360,7 @@ function classifyHtml(s){
 function looksLikeFullDoc(s){return classifyHtml(s)==='full'}
 function extractTitle(s){let m=(s||'').match(/<title[^>]*>([\s\S]*?)<\/title>/i);if(m&&m[1].trim())return unesc(m[1].replace(/\s+/g,' ').trim()).slice(0,120);m=(s||'').match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);if(m){const t=unesc(m[1].replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim());if(t)return t.slice(0,120)}return''}
 function wrapFragment(inner){return'<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{font-family:Verdana,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:16px;line-height:1.55;color:#351a30;background:#fff;-webkit-text-size-adjust:100%}img,svg,video{max-width:100%;height:auto}table{max-width:100%;border-collapse:collapse}</style></head><body>'+inner+'</body></html>'}
-function previewInstrument(session){return'<scr'+'ipt>(function(){var S='+JSON.stringify(session)+';function p(t,d){try{parent.postMessage(Object.assign({__hvPreview:1,session:S,type:t},d||{}),"*")}catch(e){}}function s(){p("scroll",{y:(window.scrollY||document.documentElement.scrollTop||0)})}var r;window.addEventListener("scroll",function(){if(r)cancelAnimationFrame(r);r=requestAnimationFrame(s)},{passive:true});window.addEventListener("message",function(e){var d=e.data;if(d&&d.__hvPreview===1&&d.session===S&&d.type==="restore"){try{window.scrollTo(0,d.y||0)}catch(x){}}});document.addEventListener("click",function(e){var a=e.target&&e.target.closest?e.target.closest("a[href]"):null;if(!a)return;var raw=a.getAttribute("href")||"";if(raw.charAt(0)==="#"){e.preventDefault();var f=raw.slice(1),id=f;try{id=decodeURIComponent(f)}catch(x){}var target=id?document.getElementById(id):document.documentElement;if(!target&&id){var named=document.getElementsByName(id);target=named&&named[0]}if(target){try{target.scrollIntoView({block:"start"})}catch(x){target.scrollIntoView()}s()}return}if(a.hasAttribute("download"))return;var u=a.href||raw,pcol=(a.protocol||"").toLowerCase();if(pcol==="http:"||pcol==="https:"||pcol==="mailto:"||pcol==="tel:"||pcol==="sms:"){e.preventDefault();p("open",{url:u})}else if(/^javascript:/i.test(raw)){e.preventDefault();p("runtime-error",{message:"javascript: links are blocked"})}},true);function rdy(){p("ready")}if(document.readyState==="complete")rdy();else window.addEventListener("load",rdy);})();<\/scr'+'ipt>'}
+function previewInstrument(session){return'<scr'+'ipt>(function(){var S='+JSON.stringify(session)+';function p(t,d){try{parent.postMessage(Object.assign({__hvPreview:1,session:S,type:t},d||{}),"*")}catch(e){}}function s(){p("scroll",{y:(window.scrollY||document.documentElement.scrollTop||0)})}window.addEventListener("error",function(e){p("runtime-error",{message:e.message||"Preview runtime error"})},true);window.addEventListener("unhandledrejection",function(e){var v=e.reason;p("runtime-error",{message:v&&v.message||String(v||"Unhandled promise rejection")})});var r;window.addEventListener("scroll",function(){if(r)cancelAnimationFrame(r);r=requestAnimationFrame(s)},{passive:true});window.addEventListener("message",function(e){var d=e.data;if(d&&d.__hvPreview===1&&d.session===S&&d.type==="restore"){try{window.scrollTo(0,d.y||0)}catch(x){}}});document.addEventListener("click",function(e){var a=e.target&&e.target.closest?e.target.closest("a[href]"):null;if(!a)return;var raw=a.getAttribute("href")||"";if(raw.charAt(0)==="#"){e.preventDefault();var f=raw.slice(1),id=f;try{id=decodeURIComponent(f)}catch(x){}var target=id?document.getElementById(id):document.documentElement;if(!target&&id){var named=document.getElementsByName(id);target=named&&named[0]}if(target){try{target.scrollIntoView({block:"start"})}catch(x){target.scrollIntoView()}s()}return}if(a.hasAttribute("download"))return;var u=a.href||raw,pcol=(a.protocol||"").toLowerCase();if(pcol==="http:"||pcol==="https:"||pcol==="mailto:"||pcol==="tel:"||pcol==="sms:"){e.preventDefault();p("open",{url:u})}else if(/^javascript:/i.test(raw)){e.preventDefault();p("runtime-error",{message:"javascript: links are blocked"})}},true);function rdy(){p("ready")}if(document.readyState==="complete")rdy();else window.addEventListener("load",rdy);})();<\/scr'+'ipt>'}
 function injectScript(html,script){const i=html.toLowerCase().lastIndexOf('</body>');return i!==-1?html.slice(0,i)+script+html.slice(i):html+script}
 /* Insert at the very top of <head> so shims run before any script the document ships. */
 function injectHead(html,frag){
@@ -392,7 +401,9 @@ function buildSrcdoc(doc,session){
       :(doc.wrapStyle==='minimal'?wrapMinimal(doc.content):wrapFragment(doc.content));
   }else inner=ensureViewport(doc.content);
   if(doc.jsEnabled)inner=injectHead(inner,STORAGE_SHIM);else inner=stripUserScripts(inner);
-  inner=injectScript(inner,previewInstrument(session));
+  /* Runtime diagnostics must run before user scripts; adding them at </body>
+     misses failures thrown by scripts in <head>. */
+  inner=injectHead(inner,previewInstrument(session));
   return inner;
 }
 
@@ -485,7 +496,7 @@ function previewNotices(d){
   if(detail.restricted.length)adv.push('Restricted document features were detected and may be blocked.');
   if(Array.isArray(d.conversionWarnings)&&d.conversionWarnings.length)adv.push(d.conversionWarnings.join(' '));
   if(d.jsEnabled&&/\b(?:local|session)Storage\b/.test(d.content||''))adv.push('It saves settings in browser storage; the private sandbox keeps those in memory, so they reset when you leave.');
-  return{blocking:blocking,advisory:adv.length?adv.join(' '):null};
+  return{blocking:blocking,advisory:adv.length?adv.join(' '):null,remoteScripts:detail.remoteScripts||[]};
 }
 /* Sandbox tokens. allow-same-origin is deliberately ABSENT: with allow-scripts it
    would dissolve the sandbox and expose the vault's own IndexedDB to stored documents.
@@ -509,7 +520,7 @@ const Storage={backend:'memory',db:null,mem:new Map(),set:new Map(),
   async getSetting(k,fb){if(this.backend==='indexeddb'){const r=await this.db.settings.get(k);return r?r.value:fb}return this.set.has(k)?this.set.get(k):fb},
   async setSetting(k,v){if(this.backend==='indexeddb')await this.db.settings.put({key:k,value:v});else this.set.set(k,v)}
 };
-const State={docs:[],query:'',current:null,viewMode:'preview',reading:false,iframe:null,previewSession:null,previewWarnings:[],previewErrors:new Set(),curScrollY:0,draft:null,wrapTouched:false,sourceLines:[],codeMatches:[],codeIdx:-1,bannerDismissed:false,noticeDismissed:{},prefs:{sort:'opened',wordWrap:false,defaultJs:true,lastBackupAt:0,fontScale:4}};
+const State={docs:[],query:'',current:null,viewMode:'preview',reading:false,iframe:null,previewSession:null,previewWarnings:[],previewIssues:[],previewErrors:new Set(),curScrollY:0,draft:null,wrapTouched:false,sourceLines:[],codeMatches:[],codeIdx:-1,bannerDismissed:false,noticeDismissed:{},prefs:{sort:'opened',wordWrap:false,defaultJs:true,lastBackupAt:0,fontScale:4}};
 async function loadPrefs(){State.prefs.sort=await Storage.getSetting('sort','opened');State.prefs.wordWrap=await Storage.getSetting('wordWrap',false);State.prefs.defaultJs=await Storage.getSetting('defaultJs',true);State.prefs.lastBackupAt=await Storage.getSetting('lastBackupAt',0);State.prefs.fontScale=await Storage.getSetting('fontScale',4);State.bannerDismissed=await Storage.getSetting('bannerDismissed',false)}
 /* Text-size steps. Step 4 = 1.0 = today's default look, unchanged. The other
    steps scale everything proportionally around that same default (the app's
@@ -699,6 +710,12 @@ $('#fileDoc').addEventListener('change',async e=>{
   if(!/^utf-8$/.test(res.cs))toast('Decoded as '+res.cs);
   const text=res.text;
   const resources=VaultPackage.analyze(text),localCount=resources.packageLocal.length+resources.rootRelative.length;
+  if(resources.remoteScripts.length){
+    const shown=resources.remoteScripts.slice(0,6).map(u=>esc(u)).join('<br>');
+    const more=resources.remoteScripts.length>6?'<br>…':'';
+    const proceed=await modal({title:'Required JavaScript will be blocked',message:'This HTML depends on '+resources.remoteScripts.length+' remote script'+(resources.remoteScripts.length===1?'':'s')+'. Its chart or controls may not run in Vault.<br><br><b>Blocked dependencies</b><br>'+shown+more+'<br><br><b>Make a working local package:</b> put this HTML and fixed-version local copies of every required script in one folder, change each script <code>src</code> to a relative path, add the licenses, then ZIP the folder with <code>index.html</code> at its root and import that ZIP.',confirmLabel:'Import non-working HTML'});
+    if(!proceed){e.target.value='';return}
+  }
   if(localCount&&!await modal({title:'This HTML needs companion files',message:'It references '+localCount+' local resource'+(localCount===1?'':'s')+'. Images or features may be missing if you import only the HTML file.<br><br>For a complete offline document, ZIP the HTML with its companion files and import the ZIP.',confirmLabel:'Import HTML only'})){e.target.value='';return}
   openNew({id:null,title:f.name.replace(/\.[^.]+$/,''),content:text,wrap:!looksLikeFullDoc(text),jsEnabled:State.prefs.defaultJs,createdAt:null,wrapTouched:false});
   e.target.value='';
@@ -741,12 +758,51 @@ function setMode(m,initial){
 function setReading(on){State.reading=on;const r=$('#viewerRoot');if(r)r.classList.toggle('reading',on)}
 function viewerMenu(){const d=State.current;sheet(d.title||'Untitled',[{label:'Reading mode',run:()=>setReading(true)},{label:'Reload preview',run:()=>{if(State.viewMode==='preview')buildPreview();else setMode('preview')}},{label:(d.jsEnabled?'Disable':'Enable')+' JavaScript',run:toggleJs},{label:'Check offline resources\u2026',run:checkOfflineResources},{label:'Rename',run:()=>renameDoc(d.id)},{label:'Duplicate',run:()=>duplicateDoc(d.id)},{label:'Delete',danger:true,run:()=>deleteDoc(d.id)}])}
 async function toggleJs(){const d=State.current;d.jsEnabled=!d.jsEnabled;await Storage.patch(d.id,{jsEnabled:d.jsEnabled});toast('JavaScript '+(d.jsEnabled?'enabled':'disabled'));if(State.viewMode==='preview')buildPreview()}
+function resetPreviewIssues(d){
+  State.previewIssues=[];
+  const detail=VaultPackage.analyze(d.content||'');
+  (detail.remoteScripts||[]).forEach(u=>addPreviewIssue('Blocked remote script',u,'error',false));
+  (detail.remoteStyles||[]).forEach(u=>addPreviewIssue('Remote stylesheet',u,'warning',false));
+  (detail.remoteMedia||[]).forEach(u=>addPreviewIssue('Remote media/resource',u,'warning',false));
+}
+function addPreviewIssue(kind,message,severity,refresh){
+  const clean=String(message||'Preview issue').replace(/\s+/g,' ').trim().slice(0,300);
+  if(!clean||/ResizeObserver loop/i.test(clean))return;
+  const key=kind+'\u0000'+clean;
+  if(!State.previewIssues.some(x=>x.key===key))State.previewIssues.push({key:key,kind:String(kind).slice(0,80),message:clean,severity:severity==='error'?'error':'warning'});
+  if(refresh!==false)renderPreviewIssues();
+}
+function renderPreviewIssues(){
+  const host=$('#previewIssuesHost');if(!host)return;
+  host.innerHTML='';
+  const details=document.createElement('details');details.className='preview-issues';details.id='previewIssues';
+  const errors=State.previewIssues.filter(x=>x.severity==='error').length;
+  details.dataset.severity=errors?'error':'none';
+  const summary=document.createElement('summary');summary.textContent='Preview issues '+State.previewIssues.length+(errors?' · '+errors+' may stop features':'');details.appendChild(summary);
+  if(State.previewIssues.length){
+    const list=document.createElement('ul');
+    State.previewIssues.forEach(issue=>{const li=document.createElement('li'),strong=document.createElement('strong');strong.textContent=issue.kind+': ';li.appendChild(strong);li.appendChild(document.createTextNode(issue.message));list.appendChild(li)});
+    details.appendChild(list);
+  }
+  host.appendChild(details);
+}
+async function explainLocalPackage(){
+  await modal({title:'Create a working local ZIP',message:'1. Put the HTML in a new folder as <code>index.html</code>.<br>2. Download the exact required script versions from their official distributions.<br>3. Change remote <code>script src</code> values to relative files such as <code>vendor/library.min.js</code>.<br>4. Include each dependency license.<br>5. ZIP the folder contents so <code>index.html</code> is at the ZIP root, then import the ZIP into Vault.<br><br>Vault runs package-local classic JavaScript inside its private sandbox. It does not enable remote JavaScript.',confirmLabel:'OK',hideCancel:true});
+}
 function buildPreview(){
   const d=State.current,wrap=$('#previewWrap');if(!wrap)return;
   wrap.innerHTML='';
   const nn=previewNotices(d);
   /* A blocking notice means nothing can render, so skip the iframe entirely. */
   if(nn.blocking){const nb=document.createElement('div');nb.className='pv-note blocking';nb.textContent=nn.blocking;wrap.appendChild(nb);State.iframe=null;return}
+  resetPreviewIssues(d);
+  const issueHost=document.createElement('div');issueHost.id='previewIssuesHost';wrap.appendChild(issueHost);
+  if(nn.remoteScripts.length){
+    const nb=document.createElement('div');nb.className='pv-note critical';
+    const copy=document.createElement('div'),title=document.createElement('strong');title.textContent='Required JavaScript is blocked';copy.appendChild(title);
+    copy.appendChild(document.createTextNode('This document depends on '+nn.remoteScripts.length+' remote script'+(nn.remoteScripts.length===1?'':'s')+', so its chart or controls may not run. Import a local ZIP package instead.'));
+    const help=document.createElement('button');help.type='button';help.textContent='Package help';help.onclick=explainLocalPackage;nb.appendChild(copy);nb.appendChild(help);wrap.appendChild(nb);
+  }
   const f=document.createElement('iframe');
   f.className='preview-frame';
   f.setAttribute('referrerpolicy','no-referrer');
@@ -765,6 +821,8 @@ function buildPreview(){
     nb.appendChild(x);wrap.appendChild(nb);
   }
   const html=buildSrcdoc(d,session);
+  State.previewWarnings.forEach(w=>addPreviewIssue('Package materialization',w,/script|blocked|unsupported/i.test(w)?'error':'warning',false));
+  renderPreviewIssues();
   requestAnimationFrame(()=>{if(State.iframe!==f||!f.isConnected)return;f.src='preview-host.html'});
   f._renderPayload={protocol:'html-vault-preview-v1',type:'render',session,html,allowScripts:true};
   f.addEventListener('load',()=>{if(State.iframe===f)try{f.contentWindow.postMessage(f._renderPayload,'*')}catch(_){}} ,{once:true});
@@ -778,8 +836,8 @@ window.addEventListener('message',e=>{const d=e.data,f=State.iframe;if(!d||d.pro
   if(d.type==='host-ready'){}
   else if(d.type==='scroll'){State.curScrollY=d.y||0;scheduleScrollSave()}
   else if(d.type==='open'){openExternal(String(d.url||''))}
-  else if(d.type==='asset-error'){const path=String(d.path||'unknown');if(!State.previewErrors.has(path)){State.previewErrors.add(path);toast('Missing package asset: '+path)}}
-  else if(d.type==='runtime-error'){const msg=String(d.message||'Preview error');if(!/ResizeObserver loop/i.test(msg))console.warn('Preview:',msg)}
+  else if(d.type==='asset-error'){const path=String(d.path||'unknown').slice(0,300);if(!State.previewErrors.has(path)){State.previewErrors.add(path);addPreviewIssue('Missing package asset',path,'warning')}}
+  else if(d.type==='runtime-error'){const msg=String(d.message||'Preview error').slice(0,300);if(!/ResizeObserver loop/i.test(msg)){console.warn('Preview:',msg);addPreviewIssue('Preview runtime error',msg,'error')}}
   else if(d.type==='ready'&&State.current){const y=State.current.scrollPosition||0,restore={protocol:'html-vault-preview-v1',session:State.previewSession,type:'restore',y};try{f.contentWindow.postMessage(restore,'*')}catch(_){}setTimeout(()=>{try{f.contentWindow.postMessage(restore,'*')}catch(_){}},450)}
 });
 window.addEventListener('pagehide',()=>saveScrollNow());

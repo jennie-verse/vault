@@ -1,0 +1,9 @@
+{
+  "name": "vault-pwa",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/make-fixtures.mjs && node --test tests/static.test.mjs",
+    "test:syntax": "node --check src/package.js && node --check src/sync.js && node --check src/sync-runner.js && node --check sw.js"
+  }
+}

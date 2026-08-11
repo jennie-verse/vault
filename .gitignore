@@ -1,12 +1,2 @@
-# macOS
-.DS_Store
-._*
-*\ 2.*
-*\ 2
-
-# editors
-.vscode/
-.idea/
-
-# node (not used at runtime, but keeps stray installs out of the deploy)
+tests/fixtures/
 node_modules/

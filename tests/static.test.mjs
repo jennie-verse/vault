@@ -1,0 +1,24 @@
+import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const read = (path) => readFileSync(join(root, path), "utf8");
+const index = read("index.html");
+const host = read("preview-host.html");
+const pkg = read("src/package.js");
+assert.doesNotMatch(index, /sandbox=["'][^"']*allow-same-origin/, "stored documents must keep an opaque origin");
+assert.doesNotMatch(host, /allow-same-origin/, "preview host must not relax the child sandbox");
+assert.doesNotMatch(host, /script-src\s+\*/, "preview CSP must not allow arbitrary scripts");
+assert.match(host, /connect-src 'none'/, "preview must block network requests");
+assert.match(pkg, /remoteScripts/, "remote scripts must have their own analysis category");
+assert.match(index, /Required JavaScript is blocked/, "blocked required scripts need a high-severity UI");
+assert.match(index, /Preview issues/, "runtime and resource issues need an on-screen panel");
+assert.match(index, /String\(d\.message\|\|'Preview error'\)\.slice\(0,300\)/, "runtime messages must be length-limited");
+assert.match(index, /window\.addEventListener\(\"unhandledrejection\"/, "single HTML previews must report promise failures");
+assert.match(index, /inner=injectHead\(inner,previewInstrument\(session\)\)/, "single HTML diagnostics must run before head scripts");
+assert.match(index, /version:2,features:\['packageAssets'\]/, "backup v2 must preserve package assets");
+assert.match(index, /\(\+data\.version\|\|1\)>2/, "future backup versions must be blocked");
+assert.ok(existsSync(join(root, "tests/package.test.html")));
+console.log("Vault static security and compatibility tests passed.");
